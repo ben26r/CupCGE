@@ -1,35 +1,40 @@
 #include "CupEngine.h"
+#include <algorithm>
 
 namespace Cup {
 
 	bool CupEngine::OnUserCreate()
 	{
-		m_cube.triangles = {
-			// SOUTH
-			{ 0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f },
-			{ 0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f },
+		//m_cube.triangles = {
+		//	// SOUTH
+		//	{ Vector3(0.0f, 0.0f, 0.0f),    Vector3(0.0f, 1.0f, 0.0f),    Vector3(1.0f, 1.0f, 0.0f) },
+		//	{ Vector3(0.0f, 0.0f, 0.0f),    Vector3(1.0f, 1.0f, 0.0f),    Vector3(1.0f, 0.0f, 0.0f) },
+		//	// EAST
+		//	{ Vector3(1.0f, 0.0f, 0.0f),    Vector3(1.0f, 1.0f, 0.0f),    Vector3(1.0f, 1.0f, 1.0f) },
+		//	{ Vector3(1.0f, 0.0f, 0.0f),    Vector3(1.0f, 1.0f, 1.0f),    Vector3(1.0f, 0.0f, 1.0f) },
+		//	// NORTH
+		//	{ Vector3(1.0f, 0.0f, 1.0f),    Vector3(1.0f, 1.0f, 1.0f),    Vector3(0.0f, 1.0f, 1.0f) },
+		//	{ Vector3(1.0f, 0.0f, 1.0f),    Vector3(0.0f, 1.0f, 1.0f),    Vector3(0.0f, 0.0f, 1.0f) },
+		//	// WEST
+		//	{ Vector3(0.0f, 0.0f, 1.0f),    Vector3(0.0f, 1.0f, 1.0f),    Vector3(0.0f, 1.0f, 0.0f) },
+		//	{ Vector3(0.0f, 0.0f, 1.0f),    Vector3(0.0f, 1.0f, 0.0f),    Vector3(0.0f, 0.0f, 0.0f) },
+		//	// TOP
+		//	{ Vector3(0.0f, 1.0f, 0.0f),    Vector3(0.0f, 1.0f, 1.0f),    Vector3(1.0f, 1.0f, 1.0f) },
+		//	{ Vector3(0.0f, 1.0f, 0.0f),    Vector3(1.0f, 1.0f, 1.0f),    Vector3(1.0f, 1.0f, 0.0f) },
+		//	// BOTTOM
+		//	{ Vector3(1.0f, 0.0f, 1.0f),    Vector3(0.0f, 0.0f, 1.0f),    Vector3(0.0f, 0.0f, 0.0f) },
+		//	{ Vector3(1.0f, 0.0f, 1.0f),    Vector3(0.0f, 0.0f, 0.0f),    Vector3(1.0f, 0.0f, 0.0f) },
 
-			// EAST                                                      
-			{ 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f },
-			{ 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f },
+		//};
+		if (!m_cube.LoadModel("src/assets/VideoShip.obj"))
+		{
 
-			// NORTH                                                     
-			{ 1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f },
-			{ 1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f },
+		}
 
-			// WEST                                                      
-			{ 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f },
-			{ 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f },
-
-			// TOP                                                       
-			{ 0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f },
-			{ 0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f },
-
-			// BOTTOM                                                    
-			{ 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f },
-			{ 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f },
-
-		};
+		for (auto& tri : m_cube.triangles)
+		{
+			tri.color = Vector4(155, 155, 155, 255);
+		}
 
 		float aspectRatio = (float)ScreenHeight() / (float)ScreenWidth();
 
@@ -46,7 +51,7 @@ namespace Cup {
 	bool CupEngine::OnUserUpdate(float fElapsedTime)
 	{
 		
-		Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, FG_BLACK);
+		FillRect(0, 0, ScreenWidth(), ScreenHeight(), olc::Pixel(0, 0, 0));
 
 		Matrix4x4 matRotZ, matRotX;
 		m_theta += 1.0f * fElapsedTime;
@@ -67,46 +72,72 @@ namespace Cup {
 		matRotX[2][2] = cosf(m_theta * 0.5f);
 		matRotX[3][3] = 1;
 
-		for (auto& triangle : m_cube.triangles)
+		std::vector<Triangle> sumtriangles;
+
+		for (const auto& triangle : m_cube.triangles)
 		{
 			Triangle triProj;
 			triProj[0] = MultiplyVectorMatrix(triangle[0], matRotZ);
 			triProj[1] = MultiplyVectorMatrix(triangle[1], matRotZ);
 			triProj[2] = MultiplyVectorMatrix(triangle[2], matRotZ);
 
-			triProj[0] = MultiplyVectorMatrix(triProj[0], matRotX);
-			triProj[1] = MultiplyVectorMatrix(triProj[1], matRotX);
-			triProj[2] = MultiplyVectorMatrix(triProj[2], matRotX);
+			MultiplyVectorMatrix(triProj[0], matRotX);
+			MultiplyVectorMatrix(triProj[1], matRotX);
+			MultiplyVectorMatrix(triProj[2], matRotX);
 
-			triProj[0].z += 3.0f;
-			triProj[1].z += 3.0f;
-			triProj[2].z += 3.0f;
+			triProj[0].z += 8.0f;
+			triProj[1].z += 8.0f;
+			triProj[2].z += 8.0f;
 
-			triProj[0] = MultiplyVectorMatrix(triProj[0], m_projectionMatrix);
-			triProj[1] = MultiplyVectorMatrix(triProj[1], m_projectionMatrix);
-			triProj[2] = MultiplyVectorMatrix(triProj[2], m_projectionMatrix);
+			Vector3 normal, line1, line2;
+			line1 = triProj[1] - triProj[0];
+			line2 = triProj[2] - triProj[0];
+			normal = line1.cross(line2);
 
-			// Scale into view
-			triProj[0].x += 1.0f; triProj[0].y += 1.0f;
-			triProj[1].x += 1.0f; triProj[1].y += 1.0f;
-			triProj[2].x += 1.0f; triProj[2].y += 1.0f;
-			triProj[0].x *= 0.5f * (float)ScreenWidth();
-			triProj[0].y *= 0.5f * (float)ScreenHeight();
-			triProj[1].x *= 0.5f * (float)ScreenWidth();
-			triProj[1].y *= 0.5f * (float)ScreenHeight();
-			triProj[2].x *= 0.5f * (float)ScreenWidth();
-			triProj[2].y *= 0.5f * (float)ScreenHeight();
+			normal = normal.normalize();
 
+			if (normal.dot(triProj[0]) < 0.0f)
+			{
+				Vector3 lightDirection = Vector3(0, 0, -1);
+				lightDirection = lightDirection.normalize();
+				float dp = normal.dot(lightDirection);
 
-			DrawCupTriangle(triProj, PIXEL_SOLID, FG_WHITE);
+				MultiplyVectorMatrix(triProj[0], m_projectionMatrix);
+				MultiplyVectorMatrix(triProj[1], m_projectionMatrix);
+				MultiplyVectorMatrix(triProj[2], m_projectionMatrix);
+
+				triProj[0].x += 1.0f; triProj[0].y += 1.0f;
+				triProj[1].x += 1.0f; triProj[1].y += 1.0f;
+				triProj[2].x += 1.0f; triProj[2].y += 1.0f;
+				triProj[0].x *= 0.5f * (float)ScreenWidth();
+				triProj[0].y *= 0.5f * (float)ScreenHeight();
+				triProj[1].x *= 0.5f * (float)ScreenWidth();
+				triProj[1].y *= 0.5f * (float)ScreenHeight();
+				triProj[2].x *= 0.5f * (float)ScreenWidth();
+				triProj[2].y *= 0.5f * (float)ScreenHeight();
+
+				triProj.color = triangle.color * dp;
+				sumtriangles.push_back(triProj);
+			}
+		}
+
+		std::sort(sumtriangles.begin(), sumtriangles.end(), [](const Triangle& triangle, const Triangle& other) {
+			float z1 = (triangle[0].z + triangle[1].z + triangle[2].z) / 3;
+			float z2 = (other[0].z + other[1].z + other[2].z) / 3;
+			return z1 > z2;
+			});
+
+		for (const Triangle& triangle : sumtriangles)
+		{
+			DrawCupTriangle(triangle, olc::Pixel(triangle.color.x, triangle.color.y, triangle.color.z));
 		}
 
 		return true;
 	}
 
-	void CupEngine::DrawCupTriangle(const Triangle& triangle, short c, short color)
+	void CupEngine::DrawCupTriangle(const Triangle& triangle, const olc::Pixel color)
 	{
-		DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, c, color);
+		FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, color);
 	}
 }
 
@@ -114,7 +145,7 @@ namespace Cup {
 int main()
 {
 	Cup::CupEngine demo;
-	if (demo.ConstructConsole(256, 240, 4, 4))
+	if (demo.Construct(256, 240, 4, 4))
 		demo.Start();
 
 	return 0;
