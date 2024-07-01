@@ -14,22 +14,6 @@
 
 namespace Cup {
 
-
-	struct Triangle
-	{
-		Vector3 vertices[3];
-		Vector4 color;
-
-        void Do(const std::function<void(Vector3&)>& func)
-        {
-            for (Vector3& vertex : vertices)
-                func(vertex);
-        }
-
-		Vector3& operator[](int index) { return vertices[index]; }
-		const Vector3& operator[](int index) const { return vertices[index]; }
-	};
-
 	class Mesh
 	{
     public:

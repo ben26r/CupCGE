@@ -1,5 +1,6 @@
 #include "Core/CupEngine.h"
 #include <algorithm>
+#include <list>
 
 namespace Cup {
 
@@ -93,16 +94,26 @@ namespace Cup {
 				lightDirection = lightDirection.normalize();
 				float dp = normal.dot(lightDirection);
 
-				for (Vector3& vertex : triProj.vertices) {
-					MultiplyVectorMatrix(vertex, m_viewMatrix);
-					MultiplyVectorMatrix(vertex, m_projectionMatrix);
-					vertex = vertex / vertex.w;
-					vertex.x += 1.0f; vertex.y += 1.0f;
-					vertex.x *= 0.5f * (float)ScreenWidth(); vertex.y *= 0.5f * (float)ScreenHeight();
-				}
+				MultiplyVectorMatrix(triProj[0], m_viewMatrix);
+				MultiplyVectorMatrix(triProj[1], m_viewMatrix);
+				MultiplyVectorMatrix(triProj[2], m_viewMatrix);
 
-				triProj.color = triangle.color * dp;
-				sumtriangles.push_back(triProj);
+				int nClippedTriangles = 0;
+				Triangle clipped[2];
+				nClippedTriangles = ClipAgainstPlane({ 0.0f, 0.0f, 2.0f }, { 0.0f, 0.0f, 1.0f }, triProj, clipped[0], clipped[1]);
+
+				for (int n = 0; n < nClippedTriangles; n++)
+				{
+					for (Vector3& vertex : clipped[n].vertices) {
+						MultiplyVectorMatrix(vertex, m_projectionMatrix);
+						vertex = vertex / vertex.w;
+						vertex.x += 1.0f; vertex.y += 1.0f;
+						vertex.x *= 0.5f * (float)ScreenWidth(); vertex.y *= 0.5f * (float)ScreenHeight();
+					}
+
+					clipped[n].color = triangle.color * dp;
+					sumtriangles.push_back(clipped[n]);
+				}
 			}
 		}
 
@@ -114,7 +125,54 @@ namespace Cup {
 
 		for (const Triangle& triangle : sumtriangles)
 		{
-			DrawCupTriangle(triangle, olc::Pixel(triangle.color.x, triangle.color.y, triangle.color.z));
+			// Clip triangles against all four screen edges, this could yield
+			// a bunch of triangles, so create a queue that we traverse to 
+			//  ensure we only test new triangles generated against planes
+			Triangle clipped[2];
+			std::list<Triangle> listTriangles;
+
+			// Add initial triangle
+			listTriangles.push_back(triangle);
+			int nNewTriangles = 1;
+
+			for (int p = 0; p < 4; p++)
+			{
+				int nTrisToAdd = 0;
+				while (nNewTriangles > 0)
+				{
+					// Take triangle from front of queue
+					Triangle test = listTriangles.front();
+					listTriangles.pop_front();
+					nNewTriangles--;
+
+					// Clip it against a plane. We only need to test each 
+					// subsequent plane, against subsequent new triangles
+					// as all triangles after a plane clip are guaranteed
+					// to lie on the inside of the plane. I like how this
+					// comment is almost completely and utterly justified
+					switch (p)
+					{
+					case 0:	nTrisToAdd = ClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 1:	nTrisToAdd = ClipAgainstPlane({ 0.0f, (float)ScreenHeight() - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 2:	nTrisToAdd = ClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 3:	nTrisToAdd = ClipAgainstPlane({ (float)ScreenWidth() - 1, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					}
+
+					// Clipping may yield a variable number of triangles, so
+					// add these new ones to the back of the queue for subsequent
+					// clipping against next planes
+					for (int w = 0; w < nTrisToAdd; w++)
+						listTriangles.push_back(clipped[w]);
+				}
+				nNewTriangles = listTriangles.size();
+			}
+
+
+			// Draw the transformed, viewed, clipped, projected, sorted, clipped triangles
+			for (auto& t : listTriangles)
+			{
+				DrawCupTriangle(t, olc::Pixel(t.color.x, t.color.y, t.color.z));
+			}
 		}
 
 		return true;
