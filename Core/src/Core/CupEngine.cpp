@@ -1,4 +1,4 @@
-#include "CupEngine.h"
+#include "Core/CupEngine.h"
 #include <algorithm>
 
 namespace Cup {
@@ -26,7 +26,7 @@ namespace Cup {
 		//	{ Vector3(1.0f, 0.0f, 1.0f),    Vector3(0.0f, 0.0f, 0.0f),    Vector3(1.0f, 0.0f, 0.0f) },
 
 		//};
-		if (!m_cube.LoadModel("src/assets/VideoShip.obj"))
+		if (!m_cube.LoadModel("assets/axis.obj"))
 		{
 
 		}
@@ -38,12 +38,7 @@ namespace Cup {
 
 		float aspectRatio = (float)ScreenHeight() / (float)ScreenWidth();
 
-		m_projectionMatrix[0][0] = aspectRatio * m_cameraProps.fovRad;
-		m_projectionMatrix[1][1] = m_cameraProps.fovRad;
-		m_projectionMatrix[2][2] = m_cameraProps.cfar / (m_cameraProps.cfar - m_cameraProps.cnear);
-		m_projectionMatrix[3][2] = (-m_cameraProps.cfar * m_cameraProps.cnear) / (m_cameraProps.cfar - m_cameraProps.cnear);
-		m_projectionMatrix[2][3] = 1.0f;
-		m_projectionMatrix[3][3] = 0.0f;
+		m_projectionMatrix = Matrix4x4::Projection(m_cameraProps.fov, aspectRatio, m_cameraProps.cnear, m_cameraProps.cfar);
 
 		return true;
 	}
@@ -53,68 +48,58 @@ namespace Cup {
 		
 		FillRect(0, 0, ScreenWidth(), ScreenHeight(), olc::Pixel(0, 0, 0));
 
-		Matrix4x4 matRotZ, matRotX;
-		m_theta += 1.0f * fElapsedTime;
-
-		// Rotation Z
-		matRotZ[0][0] = cosf(m_theta);
-		matRotZ[0][1] = sinf(m_theta);
-		matRotZ[1][0] = -sinf(m_theta);
-		matRotZ[1][1] = cosf(m_theta);
-		matRotZ[2][2] = 1;
-		matRotZ[3][3] = 1;
-
-		// Rotation X
-		matRotX[0][0] = 1;
-		matRotX[1][1] = cosf(m_theta * 0.5f);
-		matRotX[1][2] = sinf(m_theta * 0.5f);
-		matRotX[2][1] = -sinf(m_theta * 0.5f);
-		matRotX[2][2] = cosf(m_theta * 0.5f);
-		matRotX[3][3] = 1;
-
 		std::vector<Triangle> sumtriangles;
+
+		float rotx = cosf(m_theta * 0.5f);
+		float roty = sinf(m_theta * 0.5f);
+		//m_theta += 1.0f * fElapsedTime;
+
+		if (GetKey(olc::Key::LEFT).bHeld) m_camPos.x -= 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::RIGHT).bHeld) m_camPos.x += 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::UP).bHeld) m_camPos.y -= 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::DOWN).bHeld) m_camPos.y += 10.0f * fElapsedTime;
+
+
+		Vector3 foward = m_lookDir * 10 * fElapsedTime;
+
+		if (GetKey(olc::Key::S).bHeld)
+			m_camPos = m_camPos - foward;
+
+		if (GetKey(olc::Key::W).bHeld)
+			m_camPos = m_camPos + foward;
+
+		if (GetKey(olc::Key::A).bHeld)
+			m_yaw += 2.0f * fElapsedTime;
+
+		if (GetKey(olc::Key::D).bHeld)
+			m_yaw -= 2.0f * fElapsedTime;
 
 		for (const auto& triangle : m_cube.triangles)
 		{
-			Triangle triProj;
-			triProj[0] = MultiplyVectorMatrix(triangle[0], matRotZ);
-			triProj[1] = MultiplyVectorMatrix(triangle[1], matRotZ);
-			triProj[2] = MultiplyVectorMatrix(triangle[2], matRotZ);
+			Triangle triProj = triangle;
+			for (Vector3& vertex : triProj.vertices) {
+				vertex = PreRotate(vertex, Vector3(1, 1, 0), m_theta, rotx, roty); }
 
-			MultiplyVectorMatrix(triProj[0], matRotX);
-			MultiplyVectorMatrix(triProj[1], matRotX);
-			MultiplyVectorMatrix(triProj[2], matRotX);
+			m_lookDir = MultiplyVectorMatrix(Vector3::Far(), Matrix4x4::Rotation(Vector3::Up(), m_yaw));
+			Vector3 target = m_camPos + m_lookDir;
+			m_viewMatrix = Matrix4x4::PointAt(m_camPos, target, Vector3::Up()).QuickInverse();
 
-			triProj[0].z += 8.0f;
-			triProj[1].z += 8.0f;
-			triProj[2].z += 8.0f;
+			triProj.Do([](Vector3& vertex) { vertex.z += 8.0f; });
+			Vector3 normal = (triProj[1] - triProj[0]).cross((triProj[2] - triProj[0])).normalize();
 
-			Vector3 normal, line1, line2;
-			line1 = triProj[1] - triProj[0];
-			line2 = triProj[2] - triProj[0];
-			normal = line1.cross(line2);
-
-			normal = normal.normalize();
-
-			if (normal.dot(triProj[0]) < 0.0f)
+			if (normal.dot(triProj[0] - m_camPos) < 0.0f)
 			{
 				Vector3 lightDirection = Vector3(0, 0, -1);
 				lightDirection = lightDirection.normalize();
 				float dp = normal.dot(lightDirection);
 
-				MultiplyVectorMatrix(triProj[0], m_projectionMatrix);
-				MultiplyVectorMatrix(triProj[1], m_projectionMatrix);
-				MultiplyVectorMatrix(triProj[2], m_projectionMatrix);
-
-				triProj[0].x += 1.0f; triProj[0].y += 1.0f;
-				triProj[1].x += 1.0f; triProj[1].y += 1.0f;
-				triProj[2].x += 1.0f; triProj[2].y += 1.0f;
-				triProj[0].x *= 0.5f * (float)ScreenWidth();
-				triProj[0].y *= 0.5f * (float)ScreenHeight();
-				triProj[1].x *= 0.5f * (float)ScreenWidth();
-				triProj[1].y *= 0.5f * (float)ScreenHeight();
-				triProj[2].x *= 0.5f * (float)ScreenWidth();
-				triProj[2].y *= 0.5f * (float)ScreenHeight();
+				for (Vector3& vertex : triProj.vertices) {
+					MultiplyVectorMatrix(vertex, m_viewMatrix);
+					MultiplyVectorMatrix(vertex, m_projectionMatrix);
+					vertex = vertex / vertex.w;
+					vertex.x += 1.0f; vertex.y += 1.0f;
+					vertex.x *= 0.5f * (float)ScreenWidth(); vertex.y *= 0.5f * (float)ScreenHeight();
+				}
 
 				triProj.color = triangle.color * dp;
 				sumtriangles.push_back(triProj);
@@ -140,7 +125,6 @@ namespace Cup {
 		FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, color);
 	}
 }
-
 
 int main()
 {

@@ -5,7 +5,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "CupMath.h"
+#include <functional>
+
+#include "Math/CupMath.h"
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
@@ -18,12 +20,19 @@ namespace Cup {
 		Vector3 vertices[3];
 		Vector4 color;
 
+        void Do(const std::function<void(Vector3&)>& func)
+        {
+            for (Vector3& vertex : vertices)
+                func(vertex);
+        }
+
 		Vector3& operator[](int index) { return vertices[index]; }
 		const Vector3& operator[](int index) const { return vertices[index]; }
 	};
 
-	struct Mesh
+	class Mesh
 	{
+    public:
 		std::vector<Triangle> triangles;
 
         bool LoadModel(const std::string& filepath)
@@ -70,9 +79,6 @@ namespace Cup {
 		float cnear = 0.1f;
 		float cfar = 1000.0f;
 		float fov = 90.0f;
-		float fovRad = 1.0f / tanf(fov * 0.5f / 180.0f * 3.14159f);
-
-		void SetFov(float Fov) { fov = Fov; fovRad = 1.0f / tanf(Fov * 0.5f / 180.0f * 3.14159f); }
 	};
 
 	class CupEngine : public olc::PixelGameEngine
@@ -83,10 +89,18 @@ namespace Cup {
 	private:
 		void DrawCupTriangle(const Triangle& triangle, const olc::Pixel color);
 
-		float m_theta = -90.0f;
+		float m_theta = 0.0f;
+        float m_yaw = 0.0f;
 		Mesh m_cube;
+
+        Vector3 m_camPos;
 		CameraProps m_cameraProps;
+
+        Vector3 m_camera;
+        Vector3 m_lookDir = Vector3(0, 0, 1);
+
 		Matrix4x4 m_projectionMatrix;
+        Matrix4x4 m_viewMatrix;
 	};
 
 }

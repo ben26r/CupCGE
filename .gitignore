@@ -1,6 +1,8 @@
 # Directories
 .vs/
-x64/
+bin/
+bin-int/
 
 # Files
 *.user
+todo.txt
