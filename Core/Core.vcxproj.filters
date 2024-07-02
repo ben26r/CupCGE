@@ -16,14 +16,20 @@
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="src\olcConsoleGameEngine.h" />
-    <ClInclude Include="src\olcPixelGameEngine.h" />
+    <ClInclude Include="src\Olc\olcPixelGameEngine.h" />
+    <ClInclude Include="src\Core\Layer.h" />
+    <ClInclude Include="src\Core\Base.h" />
+    <ClInclude Include="src\Core\LayerStack.h" />
+    <ClInclude Include="src\Cup.h" />
+    <ClInclude Include="src\Graphics\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="todo.txt" />
+    <ClCompile Include="src\Core\LayerStack.cpp" />
+    <ClCompile Include="src\Math\CupMath.cpp" />
+    <ClCompile Include="src\Olc\olcPixelGameEngine.cpp" />
+    <ClCompile Include="src\Graphics\Camera.cpp" />
   </ItemGroup>
 </Project>

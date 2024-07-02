@@ -10,7 +10,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 project "Core"
     location "Core"
-    kind "ConsoleApp"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "On"

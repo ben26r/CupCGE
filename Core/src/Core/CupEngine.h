@@ -8,9 +8,9 @@
 #include <functional>
 
 #include "Math/CupMath.h"
+#include "LayerStack.h"
 
-#define OLC_PGE_APPLICATION
-#include "olcPixelGameEngine.h"
+#include "Olc/olcPixelGameEngine.h"
 
 namespace Cup {
 
@@ -67,13 +67,19 @@ namespace Cup {
 
 	class CupEngine : public olc::PixelGameEngine
 	{
+    public:
+        static CupEngine& Instance() { return *s_instance; }
 	public:
 		bool OnUserCreate() override;
 		bool OnUserUpdate(float fElapsedTime) override;
-	private:
-		void DrawCupTriangle(const Triangle& triangle, const olc::Pixel color);
 
-		float m_theta = 0.0f;
+        inline float GetAspectRatio() const;
+	private:
+		void DrawCupTriangle(const Triangle& triangle, const Vector4& color);
+
+        LayerStack m_layerstack;
+
+		float m_theta = -36.0f;
         float m_yaw = 0.0f;
 		Mesh m_cube;
 
@@ -85,6 +91,8 @@ namespace Cup {
 
 		Matrix4x4 m_projectionMatrix;
         Matrix4x4 m_viewMatrix;
+
+        static CupEngine* s_instance;
 	};
 
 }
