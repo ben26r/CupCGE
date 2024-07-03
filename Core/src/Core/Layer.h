@@ -2,6 +2,7 @@
 
 #include <string>
 
+
 namespace Cup {
 
 	class Layer

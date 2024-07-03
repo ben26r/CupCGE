@@ -6,6 +6,17 @@ namespace Cup {
 
 	CupEngine* CupEngine::s_instance = nullptr;
 
+	CupEngine::CupEngine()
+	{
+		if (s_instance != nullptr)
+		{
+
+		}
+		s_instance = this;
+
+		m_camera = std::make_shared<Camera>(GetAspectRatio());
+	}
+
 	bool CupEngine::OnUserCreate()
 	{
 		//m_cube.triangles = {
@@ -30,25 +41,6 @@ namespace Cup {
 
 		//};
 
-		if (s_instance != nullptr)
-		{
-
-		}
-		s_instance = this;
-
-		if (!m_cube.LoadModel("assets/mountains.obj"))
-		{
-
-		}
-
-		for (auto& tri : m_cube.triangles)
-		{
-			tri.color = Vector4(155, 155, 155, 255);
-		}
-		float aspectRatio = (float)ScreenHeight() / (float)ScreenWidth();
-
-		m_projectionMatrix = Matrix4x4::Projection(m_cameraProps.fov, aspectRatio, m_cameraProps.cnear, m_cameraProps.cfar);
-
 		return true;
 	}
 
@@ -57,80 +49,40 @@ namespace Cup {
 		
 		FillRect(0, 0, ScreenWidth(), ScreenHeight(), olc::Pixel(0, 0, 0));
 
-		std::vector<Triangle> sumtriangles;
-
-		
 		//m_theta += 1.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::LEFT).bHeld) m_camPos.x -= 10.0f * fElapsedTime;
-		if (GetKey(olc::Key::RIGHT).bHeld) m_camPos.x += 10.0f * fElapsedTime;
-		if (GetKey(olc::Key::UP).bHeld) m_camPos.y += 10.0f * fElapsedTime;
-		if (GetKey(olc::Key::DOWN).bHeld) m_camPos.y -= 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::LEFT).bHeld)  m_camera->m_position.x -= 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::RIGHT).bHeld) m_camera->m_position.x += 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::UP).bHeld)    m_camera->m_position.y += 10.0f * fElapsedTime;
+		if (GetKey(olc::Key::DOWN).bHeld)  m_camera->m_position.y -= 10.0f * fElapsedTime;
 
 
-		Vector3 foward = m_lookDir * 10 * fElapsedTime;
+		Vector3 foward = m_camera->m_lookDir * 10 * fElapsedTime;
 
 		if (GetKey(olc::Key::S).bHeld)
-			m_camPos = m_camPos - foward;
+			m_camera->m_position -= foward;
 
 		if (GetKey(olc::Key::W).bHeld)
-			m_camPos = m_camPos + foward;
+			m_camera->m_position += foward;
 
 		if (GetKey(olc::Key::A).bHeld)
-			m_yaw -= 2.0f * fElapsedTime;
+			m_camera->m_yaw -= 2.0f * fElapsedTime;
 
 		if (GetKey(olc::Key::D).bHeld)
-			m_yaw += 2.0f * fElapsedTime;
+			m_camera->m_yaw += 2.0f * fElapsedTime;
 
-		m_lookDir = Matrix4x4::Rotation(Vector3::Up(), m_yaw) * Vector3::Far();
-		Vector3 target = m_camPos + m_lookDir;
-		m_viewMatrix = Matrix4x4::PointAt(m_camPos, target, Vector3::Down()).QuickInverse();
+		m_camera->RecalulateView();
 
-		m_theta += 1.0f * fElapsedTime;
-		Matrix4x4 modelMatrix = Matrix4x4::Translation(0.0f, -5.0f, -50.0f);// *Matrix4x4::Scale(10.0f, 1.0f, 10.0f);
+		for (auto& layer : m_layerstack)
+			layer->OnUpdate(fElapsedTime);
 
-		for (const auto& triangle : m_cube.triangles)
-		{
-			Triangle triProj = triangle;
-
-			triProj *= modelMatrix;
-
-			Vector3 normal = (triProj[1] - triProj[0]).cross((triProj[2] - triProj[0])).normalize();
-
-			if (normal.dot(triProj[0] - m_camPos) < 0.0f)
-			{
-				Vector3 lightDirection = Vector3(0, 1.0f, -1.0f);
-				lightDirection = lightDirection.normalize();
-				float dp = std::max(0.1f, normal.dot(lightDirection));
-
-				triProj *= m_viewMatrix;
-
-				int nClippedTriangles = 0;
-				Triangle clipped[2];
-				nClippedTriangles = ClipAgainstPlane({ 0.0f, 0.0f, 2.0f }, { 0.0f, 0.0f, 1.0f }, triProj, clipped[0], clipped[1]);
-
-				for (int n = 0; n < nClippedTriangles; n++)
-				{
-					for (Vector3& vertex : clipped[n].vertices) {
-						vertex = m_projectionMatrix * vertex;
-						vertex = vertex / vertex.w;
-						vertex.x += 1.0f; vertex.y += 1.0f;
-						vertex.x *= 0.5f * (float)ScreenWidth(); vertex.y *= 0.5f * (float)ScreenHeight();
-					}
-
-					clipped[n].color = triangle.color * dp;
-					sumtriangles.push_back(clipped[n]);
-				}
-			}
-		}
-
-		std::sort(sumtriangles.begin(), sumtriangles.end(), [](const Triangle& triangle, const Triangle& other) {
+		std::sort(m_sumtriangles.begin(), m_sumtriangles.end(), [](const Triangle& triangle, const Triangle& other) {
 			float z1 = (triangle[0].z + triangle[1].z + triangle[2].z) / 3;
 			float z2 = (other[0].z + other[1].z + other[2].z) / 3;
 			return z1 > z2;
 			});
 
-		for (const Triangle& triangle : sumtriangles)
+		for (const Triangle& triangle : m_sumtriangles)
 		{
 			// Clip triangles against all four screen edges, this could yield
 			// a bunch of triangles, so create a queue that we traverse to 
@@ -182,7 +134,49 @@ namespace Cup {
 			}
 		}
 
+		m_sumtriangles.clear();
+
 		return true;
+	}
+
+	void CupEngine::Submit(const Mesh& mesh)
+	{
+		for (const auto& triangle : mesh.triangles)
+		{
+			Triangle triProj = triangle;
+
+			Matrix4x4 modelMatrix = Matrix4x4::Translation(0.0f, -5.0f, -50.0f);// *Matrix4x4::Scale(10.0f, 1.0f, 10.0f);
+			triProj *= modelMatrix;
+
+			Vector3 normal = (triProj[1] - triProj[0]).cross((triProj[2] - triProj[0])).normalize();
+
+			if (normal.dot(triProj[0] - m_camera->GetPosition()) < 0.0f)
+			{
+				Vector3 lightDirection = Vector3(0, 1.0f, -1.0f);
+				lightDirection = lightDirection.normalize();
+				float dp = std::max(0.1f, normal.dot(lightDirection));
+
+				triProj *= m_camera->GetView();
+
+				int nClippedTriangles = 0;
+				Triangle clipped[2];
+				nClippedTriangles = ClipAgainstPlane({ 0.0f, 0.0f, 2.0f }, { 0.0f, 0.0f, 1.0f }, triProj, clipped[0], clipped[1]);
+
+				for (int n = 0; n < nClippedTriangles; n++)
+				{
+					for (Vector3& vertex : clipped[n].vertices) {
+						vertex = m_camera->GetProjection() * vertex;
+						vertex = vertex / vertex.w;
+						vertex.x += 1.0f; vertex.y += 1.0f;
+						vertex.x *= 0.5f * (float)ScreenWidth(); vertex.y *= 0.5f * (float)ScreenHeight();
+					}
+
+					clipped[n].color = triangle.color * dp;
+					m_sumtriangles.push_back(clipped[n]);
+				}
+			}
+		}
+
 	}
 
 	void CupEngine::DrawCupTriangle(const Triangle& triangle, const Vector4& color)

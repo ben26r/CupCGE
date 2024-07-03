@@ -22,6 +22,7 @@
     <ClInclude Include="src\Core\LayerStack.h" />
     <ClInclude Include="src\Cup.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
+    <ClInclude Include="src\Core\EntryPoint.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">

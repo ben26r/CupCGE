@@ -6,8 +6,10 @@
 #include <sstream>
 
 #include <functional>
+#include <memory>
 
 #include "Math/CupMath.h"
+#include "Graphics/Camera.h"
 #include "LayerStack.h"
 
 #include "Olc/olcPixelGameEngine.h"
@@ -58,20 +60,19 @@ namespace Cup {
         }
 	};
 
-	struct CameraProps
-	{
-		float cnear = 0.1f;
-		float cfar = 1000.0f;
-		float fov = 90.0f;
-	};
-
 	class CupEngine : public olc::PixelGameEngine
 	{
     public:
         static CupEngine& Instance() { return *s_instance; }
 	public:
+        CupEngine();
+        ~CupEngine() = default;
+
 		bool OnUserCreate() override;
 		bool OnUserUpdate(float fElapsedTime) override;
+
+        void Submit(const Mesh& mesh);
+        void PushLayer(Layer* layer) { m_layerstack.PushLayer(layer); layer->OnAttach(); }
 
         inline float GetAspectRatio() const;
 	private:
@@ -79,20 +80,11 @@ namespace Cup {
 
         LayerStack m_layerstack;
 
-		float m_theta = -36.0f;
-        float m_yaw = 0.0f;
-		Mesh m_cube;
-
-        Vector3 m_camPos;
-		CameraProps m_cameraProps;
-
-        Vector3 m_camera;
-        Vector3 m_lookDir = Vector3(0, 0, 1);
-
-		Matrix4x4 m_projectionMatrix;
-        Matrix4x4 m_viewMatrix;
+        std::shared_ptr<Camera> m_camera;
+        std::vector<Triangle> m_sumtriangles;
 
         static CupEngine* s_instance;
 	};
 
+    CupEngine* CreateApplication();
 }
