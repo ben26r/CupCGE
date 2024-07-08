@@ -15,7 +15,7 @@
     <ClInclude Include="src\Math\CupMath.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\olcConsoleGameEngine.h" />
+    <ClInclude Include="src\Olc\olcConsoleGameEngine.h" />
     <ClInclude Include="src\Olc\olcPixelGameEngine.h" />
     <ClInclude Include="src\Core\Layer.h" />
     <ClInclude Include="src\Core\Base.h" />
@@ -23,14 +23,16 @@
     <ClInclude Include="src\Cup.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Core\EntryPoint.h" />
+    <ClInclude Include="src\Graphics\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\LayerStack.cpp" />
-    <ClCompile Include="src\Math\CupMath.cpp" />
     <ClCompile Include="src\Olc\olcPixelGameEngine.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
+    <ClCompile Include="src\Olc\olcConsoleGameEngine.cpp" />
+    <ClCompile Include="src\Graphics\Renderer.cpp" />
   </ItemGroup>
 </Project>

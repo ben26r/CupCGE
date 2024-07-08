@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Core\EntryPoint.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Core\LayerStack.h" />
@@ -139,14 +140,15 @@
     <ClInclude Include="src\Core\CupEngine.h" />
     <ClInclude Include="src\Cup.h" />
     <ClInclude Include="src\Math\CupMath.h" />
-    <ClInclude Include="src\olcConsoleGameEngine.h" />
+    <ClInclude Include="src\Olc\olcConsoleGameEngine.h" />
     <ClInclude Include="src\Olc\olcPixelGameEngine.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Core\LayerStack.cpp" />
     <ClCompile Include="src\Core\CupEngine.cpp" />
-    <ClCompile Include="src\Math\CupMath.cpp" />
+    <ClCompile Include="src\Olc\olcConsoleGameEngine.cpp" />
     <ClCompile Include="src\Olc\olcPixelGameEngine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

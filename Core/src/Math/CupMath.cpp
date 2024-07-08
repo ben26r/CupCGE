@@ -2,7 +2,8 @@
 
 namespace Cup
 {
-    Matrix4x4 Matrix4x4::Identity() 
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Identity()
     {
         Matrix4x4 result;
         for (int i = 0; i < 4; ++i) {
@@ -11,7 +12,8 @@ namespace Cup
         return result;
     }
 
-    Matrix4x4 Matrix4x4::Scale(float x, float y, float z)
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Scale(T x, T y, T z)
     {
         Matrix4x4 result;
         result[0][0] = x;
@@ -21,7 +23,8 @@ namespace Cup
         return result;
     }
 
-    Matrix4x4 Matrix4x4::Translation(float x, float y, float z)
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Translation(T x, T y, T z)
     {
         Matrix4x4 result;
         result[0][0] = 1.0f;
@@ -35,13 +38,15 @@ namespace Cup
     }
 
     // Static function to create a zero matrix
-    Matrix4x4 Matrix4x4::Zero() {
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Zero() {
         return Matrix4x4();
     }
 
-    Matrix4x4 Matrix4x4::Projection(float fovDegrees, float aspectRatio, float cnear, float cfar)
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Projection(T fovDegrees, T aspectRatio, T cnear, T cfar)
     {
-        float fFovRad = 1.0f / tanf(fovDegrees * 0.5f / 180.0f * 3.14159f);
+        T fFovRad = 1.0f / tanf(fovDegrees * 0.5f / 180.0f * 3.14159f);
         Matrix4x4 result;
         result[0][0] = aspectRatio * fFovRad;
         result[1][1] = fFovRad;
@@ -52,7 +57,8 @@ namespace Cup
         return result;
     }
 
-    Matrix4x4 Matrix4x4::Rotation(const Vector3& axis, float angle)
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::Rotation(const Vector3<T>& axis, T angle)
     {
         Matrix4x4 matrix;
 
@@ -87,15 +93,16 @@ namespace Cup
         return matrix;
     }
 
-    Matrix4x4 Matrix4x4::PointAt(const Vector3& position, const Vector3& target, const Vector3& up)
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::PointAt(const Vector3<T>& position, const Vector3<T>& target, const Vector3<T>& up)
     {
-        Vector3 newForward = target - position;
+        Vector3<T> newForward = target - position;
         newForward = newForward.normalize();
 
-        Vector3 a = newForward * up.dot(newForward);
-        Vector3 newUp = (up - a).normalize();
+        Vector3<T> a = newForward * up.dot(newForward);
+        Vector3<T> newUp = (up - a).normalize();
 
-        Vector3 newRight = newUp.cross(newForward);
+        Vector3<T> newRight = newUp.cross(newForward);
 
         Matrix4x4 result;
         result[0][0] = newRight.x;	    result[0][1] = newRight.y;	    result[0][2] = newRight.z;	    result[0][3] = 0.0f;
@@ -105,7 +112,8 @@ namespace Cup
         return result;
     }
 
-    Matrix4x4 Matrix4x4::QuickInverse() // Only for Rotation/Translation Matrices
+    template<class T>
+    Matrix4x4<T> Matrix4x4<T>::QuickInverse() // Only for Rotation/Translation Matrices
     {
         Matrix4x4 result;
         result[0][0] = matrix[0][0];  result[0][1] = matrix[1][0];  result[0][2] = matrix[2][0];  result[0][3] = 0.0f;
@@ -118,92 +126,37 @@ namespace Cup
         return result;
     }
 
-    Vector3 Vector3::Rotate(const Vector3& axis, const float theta)
-    {
-        float rotx = cosf(theta * 0.5f);
-        float roty = sinf(theta * 0.5f);
-
-        Vector3 current = { x, y, z };
-        Vector3 result;
-
-        if (axis.x == 1)
-        {
-            result.y = current.y *  rotx + current.z * roty;
-            result.z = current.y * -roty + current.z * rotx;
-            current = result;
-        }
-        if (axis.y == 1)
-        {
-            result.x = current.x * rotx + current.y * -roty;
-            result.y = current.x * roty + current.y * rotx;
-            current = result;
-        }
-        if (axis.z == 1)
-        {
-            result.x = current.x *  rotx + current.y * roty;
-            result.y = current.x * -roty + current.y * rotx;
-            current = result;
-        }
-
-        return result;
-    }
-
-    Vector3 Vector3::PreRotate(const Vector3& axis, const float theta, const float rotx, const float roty)
-    {
-        Vector3 current = { x, y, z };
-        Vector3 result;
-
-        if (axis.x == 1)
-        {
-            result.y = current.y * rotx + current.z * roty;
-            result.z = current.y * -roty + current.z * rotx;
-            current = result;
-        }
-        if (axis.y == 1)
-        {
-            result.x = current.x * rotx + current.y * -roty;
-            result.y = current.x * roty + current.y * rotx;
-            current = result;
-        }
-        if (axis.z == 1)
-        {
-            result.x = current.x * rotx + current.y * roty;
-            result.y = current.x * -roty + current.y * rotx;
-            current = result;
-        }
-
-        return result;
-    }
-
     //how to lines intersect with planes
-    Vector3 IntersectPlane(Vector3& plane_p, Vector3& plane_n, Vector3& lineStart, Vector3& lineEnd)
+    template<class T>
+    Vector3<T> IntersectPlane(Vector3<T>& plane_p, Vector3<T>& plane_n, Vector3<T>& lineStart, Vector3<T>& lineEnd)
     {
         plane_n = plane_n.normalize();
         float plane_d = -plane_n.dot(plane_p);
         float ad = lineStart.dot(plane_n);
         float bd = lineEnd.dot(plane_n);
         float t = (-plane_d - ad) / (bd - ad);
-        Vector3 lineStartToEnd = lineEnd - lineStart;
-        Vector3 lineToIntersect = lineStartToEnd * t;
+        Vector3<T> lineStartToEnd = lineEnd - lineStart;
+        Vector3<T> lineToIntersect = lineStartToEnd * t;
         return lineStart + lineToIntersect;
     }
 
-    int ClipAgainstPlane(Vector3 plane_p, Vector3 plane_n, Triangle& in_tri, Triangle& out_tri1, Triangle& out_tri2)
+    template<class T>
+    int ClipAgainstPlane(Vector3<T> plane_p, Vector3<T> plane_n, Triangle<T>& in_tri, Triangle<T>& out_tri1, Triangle<T>& out_tri2)
     {
         // Make sure plane normal is indeed normal
         plane_n = plane_n.normalize();
 
         // Return signed shortest distance from point to plane, plane normal must be normalised
-        auto dist = [&](Vector3& p)
+        auto dist = [&](Vector3<T>& p)
             {
-                Vector3 n = p.normalize();
+                Vector3<T> n = p.normalize();
                 return (plane_n.x * p.x + plane_n.y * p.y + plane_n.z * p.z - plane_n.dot(plane_p));
             };
 
         // Create two temporary storage arrays to classify points either side of plane
         // If distance sign is positive, point lies on "inside" of plane
-        Vector3* inside_points[3];  int nInsidePointCount = 0;
-        Vector3* outside_points[3]; int nOutsidePointCount = 0;
+        Vector3<T>* inside_points[3];  int nInsidePointCount = 0;
+        Vector3<T>* outside_points[3]; int nOutsidePointCount = 0;
 
         // Get signed distance of each point in triangle to plane
         float d0 = dist(in_tri[0]);
@@ -240,7 +193,7 @@ namespace Cup
 
         if (nInsidePointCount == 1 && nOutsidePointCount == 2)
         {
-            // Triangle should be clipped. As two points lie outside
+            // Triangle<T> should be clipped. As two points lie outside
             // the plane, the triangle simply becomes a smaller triangle
 
             // Copy appearance info to new triangle
@@ -259,7 +212,7 @@ namespace Cup
 
         if (nInsidePointCount == 2 && nOutsidePointCount == 1)
         {
-            // Triangle should be clipped. As two points lie inside the plane,
+            // Triangle<T> should be clipped. As two points lie inside the plane,
             // the clipped triangle becomes a "quad". Fortunately, we can
             // represent a quad with two new triangles
 
@@ -286,9 +239,10 @@ namespace Cup
         }
     }
 
-    void MultiplyVectorMatrix(Vector3& vector, const Matrix4x4& matrix)
+    template<class T>
+    void MultiplyVectorMatrix(Vector3<T>& vector, const Matrix4x4<T>& matrix)
     {
-        Vector3 result;
+        Vector3<T> result;
         result.x = vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0] + vector.w * matrix[3][0];
         result.y = vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1] + vector.w * matrix[3][1];
         result.z = vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2] + vector.w * matrix[3][2];
@@ -297,9 +251,10 @@ namespace Cup
         vector = result;
     }
 
-    Vector3 MultiplyVectorMatrix(const Vector3& vector, const Matrix4x4& matrix)
+    template<class T>
+    Vector3<T> MultiplyVectorMatrix(const Vector3<T>& vector, const Matrix4x4<T>& matrix)
     {
-        Vector3 result;
+        Vector3<T> result;
         result.x = vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0] + matrix[3][0];
         result.y = vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1] + matrix[3][1];
         result.z = vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2] + matrix[3][2];

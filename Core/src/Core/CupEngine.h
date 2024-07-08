@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "Math/CupMath.h"
+#include "Graphics/Renderer.h"
 #include "Graphics/Camera.h"
 #include "LayerStack.h"
 
@@ -16,75 +17,37 @@
 
 namespace Cup {
 
-	class Mesh
-	{
-    public:
-		std::vector<Triangle> triangles;
-
-        bool LoadModel(const std::string& filepath)
-        {
-            std::ifstream file(filepath);
-            if (!file.is_open())
-                return false;
-
-            std::vector<Vector3> vertices;
-            std::string line;
-            while (std::getline(file, line))
-            {
-                std::istringstream iss(line);
-                std::string prefix;
-                iss >> prefix;
-
-                if (prefix == "v")
-                {
-                    Vector3 vertex;
-                    iss >> vertex.x >> vertex.y >> vertex.z;
-                    vertices.push_back(vertex);
-                }
-                else if (prefix == "f")
-                {
-                    Triangle triangle;
-                    int vertexIndices[3];
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        iss >> vertexIndices[i];
-                        // OBJ files are 1-indexed
-                        triangle[i] = vertices[vertexIndices[i] - 1];
-                    }
-                    triangles.push_back(triangle);
-                }
-            }
-
-            file.close();
-            return true;
-        }
-	};
-
 	class CupEngine : public olc::PixelGameEngine
 	{
     public:
         static CupEngine& Instance() { return *s_instance; }
 	public:
-        CupEngine();
+        CupEngine(); // shoud be explicit
         ~CupEngine() = default;
 
 		bool OnUserCreate() override;
 		bool OnUserUpdate(float fElapsedTime) override;
 
-        void Submit(const Mesh& mesh);
         void PushLayer(Layer* layer) { m_layerstack.PushLayer(layer); layer->OnAttach(); }
 
-        inline float GetAspectRatio() const;
+        inline float GetAspectRatio() const
+        {
+            return (float)ScreenHeight() / (float)ScreenWidth();
+        }
 	private:
-		void DrawCupTriangle(const Triangle& triangle, const Vector4& color);
+        template <typename T>
+		void DrawCupTriangle(const Triangle<T>& triangle, const Vector4& color);
 
         LayerStack m_layerstack;
-
-        std::shared_ptr<Camera> m_camera;
-        std::vector<Triangle> m_sumtriangles;
-
         static CupEngine* s_instance;
 	};
+
+    template <typename T>
+    void CupEngine::DrawCupTriangle(const Triangle<T>& triangle, const Vector4& color)
+    {
+        FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(color.x, color.y, color.z, 255.0f));
+        //DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(0.0f, 0.0f, 0.0f, 255.0f));
+    }
 
     CupEngine* CreateApplication();
 }
