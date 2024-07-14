@@ -1,0 +1,3 @@
+[submodule "Core/vendor/CupECS"]
+	path = Core/vendor/CupECS
+	url = https://github.com/ben26r/CupECS.git

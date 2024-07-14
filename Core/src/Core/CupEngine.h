@@ -12,6 +12,7 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Camera.h"
 #include "LayerStack.h"
+#include "Scene/Scene.h"
 
 #include "Olc/olcPixelGameEngine.h"
 
@@ -20,34 +21,30 @@ namespace Cup {
 	class CupEngine : public olc::PixelGameEngine
 	{
     public:
-        static CupEngine& Instance() { return *s_instance; }
+        static constexpr CupEngine& Instance() { return *s_instance; }
+        static inline Scene& InsScene() { return s_instance->GetScene(); }
 	public:
-        CupEngine(); // shoud be explicit
+        explicit CupEngine();
         ~CupEngine() = default;
 
 		bool OnUserCreate() override;
 		bool OnUserUpdate(float fElapsedTime) override;
+        bool OnUserRender() override;
 
         void PushLayer(Layer* layer) { m_layerstack.PushLayer(layer); layer->OnAttach(); }
 
+        inline Scene& GetScene() { return m_scene; }
         inline float GetAspectRatio() const
         {
             return (float)ScreenHeight() / (float)ScreenWidth();
         }
+
 	private:
-        template <typename T>
-		void DrawCupTriangle(const Triangle<T>& triangle, const Vector4& color);
 
         LayerStack m_layerstack;
+        Scene m_scene;
         static CupEngine* s_instance;
 	};
-
-    template <typename T>
-    void CupEngine::DrawCupTriangle(const Triangle<T>& triangle, const Vector4& color)
-    {
-        FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(color.x, color.y, color.z, 255.0f));
-        //DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(0.0f, 0.0f, 0.0f, 255.0f));
-    }
 
     CupEngine* CreateApplication();
 }

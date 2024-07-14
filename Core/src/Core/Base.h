@@ -3,6 +3,7 @@
 #include <iostream>
 
 #define ENABLE_CUP_ASSERTS
+#define ENABLE_CUP_LOGGING
 
 #ifdef ENABLE_CUP_ASSERTS
 #define CUP_ASSERT(x, ...) { if(!(x)) { std::cout << __VA_ARGS__ << std::endl; __debugbreak(); } }
@@ -11,6 +12,13 @@
 #define CUP_ASSERT(x, ...)
 #define CUP_ASSERT_FUNC(x, ...)
 #endif
+
+#ifdef ENABLE_CUP_LOGGING
+#define CUP_LOG(...) { std::cout << __VA_ARGS___ << "\n"; }
+#else
+#define CUP_LOG()
+#endif
+
 
 #ifdef ENABLE_CUP_BENCHMARKING
 
@@ -26,24 +34,22 @@ namespace Cup {
 		~ScopedTimer();
 
 	private:
-		std::chrono::time_point<std::chrono::steady_clock> m_start;
-
+		const std::chrono::time_point<std::chrono::steady_clock> m_start;
 		const std::string m_name;
-};
+	};
 
-	ScopedTimer::ScopedTimer(const std::string& name)
-		: m_name(name)
+	inline ScopedTimer::ScopedTimer(const std::string& name)
+		: m_name(name), m_start(std::chrono::high_resolution_clock::now())
 	{
-		m_start = std::chrono::high_resolution_clock::now();
 	}
 
-	ScopedTimer::~ScopedTimer()
+	inline ScopedTimer::~ScopedTimer()
 	{
-		auto endTimepoint = std::chrono::high_resolution_clock::now();
+		const auto endTimepoint = std::chrono::high_resolution_clock::now();
 
-		long long start = std::chrono::time_point_cast<std::chrono::microseconds> (m_start).time_since_epoch().count();
-		long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
-		auto time = end - start;
+		const long long start = std::chrono::time_point_cast<std::chrono::microseconds> (m_start).time_since_epoch().count();
+		const long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
+		const auto time = end - start;
 
 		// could create algorithim to add space
 		std::cout << m_name << ":" << "\n";

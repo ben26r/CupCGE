@@ -1,4 +1,5 @@
 #pragma region license_and_help
+#include "ImGui/ImGuiCommand.h"
 /*
 	olcPixelGameEngine.h
 
@@ -976,6 +977,7 @@ namespace olc
 		virtual bool OnUserCreate();
 		// Called every frame, and provides you with a time per frame value
 		virtual bool OnUserUpdate(float fElapsedTime);
+		virtual bool OnUserRender();
 		// Called once on application termination, so you can be one clean coder
 		virtual bool OnUserDestroy();
 
@@ -3751,6 +3753,11 @@ namespace olc
 	bool PixelGameEngine::OnUserUpdate(float fElapsedTime)
 	{ UNUSED(fElapsedTime);  return false; }
 
+	bool PixelGameEngine::OnUserRender()
+	{
+		return false;
+	}
+
 	bool PixelGameEngine::OnUserDestroy()
 	{ return true; }
 
@@ -3804,10 +3811,10 @@ namespace olc
 		y -= vViewPos.y;
 		vMousePosCache.x = (int32_t)(((float)x / (float)(vWindowSize.x - (vViewPos.x * 2)) * (float)vScreenSize.x));
 		vMousePosCache.y = (int32_t)(((float)y / (float)(vWindowSize.y - (vViewPos.y * 2)) * (float)vScreenSize.y));
-		if (vMousePosCache.x >= (int32_t)vScreenSize.x)	vMousePosCache.x = vScreenSize.x - 1;
-		if (vMousePosCache.y >= (int32_t)vScreenSize.y)	vMousePosCache.y = vScreenSize.y - 1;
-		if (vMousePosCache.x < 0) vMousePosCache.x = 0;
-		if (vMousePosCache.y < 0) vMousePosCache.y = 0;
+		//if (vMousePosCache.x >= (int32_t)vScreenSize.x)	vMousePosCache.x = vScreenSize.x - 1;
+		//if (vMousePosCache.y >= (int32_t)vScreenSize.y)	vMousePosCache.y = vScreenSize.y - 1;
+		//if (vMousePosCache.x < 0) vMousePosCache.x = 0;
+		//if (vMousePosCache.y < 0) vMousePosCache.y = 0;
 	}
 
 	void PixelGameEngine::olc_UpdateMouseState(int32_t button, bool state)
@@ -3843,6 +3850,7 @@ namespace olc
 
 	void PixelGameEngine::olc_Terminate()
 	{ bAtomActive = false; }
+
 
 	void PixelGameEngine::EngineThread()
 	{
@@ -3985,14 +3993,15 @@ namespace olc
 			{
 				if (layer->funcHook == nullptr)
 				{
-					renderer->ApplyTexture(layer->pDrawTarget.Decal()->id);
+					//renderer->ApplyTexture(layer->pDrawTarget.Decal()->id);
 					if (!bSuspendTextureTransfer && layer->bUpdate)
 					{
 						layer->pDrawTarget.Decal()->Update();
 						layer->bUpdate = false;
 					}
 
-					renderer->DrawLayerQuad(layer->vOffset, layer->vScale, layer->tint);
+					// temp solution
+					//renderer->DrawLayerQuad(layer->vOffset, layer->vScale, layer->tint);
 
 					// Display Decals in order for this layer
 					for (auto& decal : layer->vecDecalInstance)
@@ -4007,7 +4016,7 @@ namespace olc
 			}
 		}
 
-		
+		OnUserRender();
 
 		// Present Graphics to screen
 		renderer->DisplayFrame();

@@ -5,8 +5,11 @@ workspace "CupCGE"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
---IncludeDir = {}
---IncludeDir["GLFW"] = "CupCore/vendor/GLFW/include"
+IncludeDir = {}
+IncludeDir["CupECS"] = "Core/vendor/CupECS/include"
+IncludeDir["ImGui"] = "Core/vendor/ImGui"
+
+include "Core/vendor/ImGui"
 
 project "Core"
     location "Core"
@@ -21,14 +24,18 @@ project "Core"
     files
     {
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/**.h"
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/vendor/CupECS/include/**.h"
     }
     includedirs
     {
-        "%{prj.name}/src"
+        "%{prj.name}/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.CupECS}"
     }
     links
     {
+        "ImGui"
     }
 
     filter "system:windows"
@@ -74,7 +81,9 @@ project "Sandbox"
     }
     includedirs
     {
-        "Core/src"
+        "Core/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.CupECS}"
     }
     links 
     { 
