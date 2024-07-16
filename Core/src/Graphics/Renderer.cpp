@@ -26,7 +26,7 @@ namespace Cup {
 			{
 				Vector3f lightDirection = Vector3f(0, 1.0f, -1.0f);
 				lightDirection.normalize();
-				float dp = std::max(0.5f, normal.dot(lightDirection));
+				float dp = std::max(0.2f, normal.dot(lightDirection));
 
 				triangle *= camera->GetView();
 
@@ -128,8 +128,8 @@ namespace Cup {
 	void Renderer::DrawCupTriangle(const Trianglef& triangle, const Vector4& color)
 	{
 		SCOPE_FUNC();
-		m_rendererData.appPtr->FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(color.x, color.y, color.z, 255.0f));
-		m_rendererData.appPtr->DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(0.0f, 0.0f, 0.0f, 255.0f));
+		//m_rendererData.appPtr->FillTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(color.x, color.y, color.z));
+		m_rendererData.appPtr->DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(255.0f, 255.0f, 255.0f, 255.0f));
 	}
 
 	void Renderer::Sort()

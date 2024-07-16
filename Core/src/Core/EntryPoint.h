@@ -10,7 +10,7 @@ extern Cup::CupEngine* Cup::CreateApplication();
 int main()
 {
 	auto demo = Cup::CreateApplication();
-	if (demo->Construct(1000, 800, 1, 1))
+	if (demo->Construct(280, 200, 4, 4))
 		demo->Start();
 
 	return 0;

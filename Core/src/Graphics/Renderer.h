@@ -25,7 +25,6 @@ namespace Cup {
 
         static void DrawCupTriangle(const Trianglef& triangle, const Vector4& color);
 		//static void Renderer::DrawString(const std::string& text, const Vector4& color);
-
 	private:
 		struct RendererData
 		{

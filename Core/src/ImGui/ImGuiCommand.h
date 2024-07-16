@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Core/Base.h"
 #include "Olc/olcPixelGameEngine.h"
+#include "ImGui/imgui_impl_pge.h"
 
 namespace Cup {
 
@@ -10,7 +12,7 @@ namespace Cup {
 		static bool Init(olc::PixelGameEngine* appPtr);
 		static void Shutdown();
 
-		static void Begin(const olc::vi2d& windowSize);
+		static void Begin();
 		static void End();
 	};
 

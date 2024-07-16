@@ -10,6 +10,64 @@
 namespace Cup
 {
     template<class T>
+    struct Vector2 {
+        T x = 0;
+        T y = 0;
+        T w = 1;
+
+        Vector2() = default;
+        Vector2(T _x, T _y) : x(_x), y(_y) {}
+        Vector2(const Vector2& other) : x(other.x), y(other.y), w(other.w) {}
+
+        inline static Vector2 Up() { return Vector2(0, 1, 0); }
+        inline static Vector2 Down() { return Vector2(0, -1, 0); }
+        inline static Vector2 Left() { return Vector2(-1, 0, 0); }
+        inline static Vector2 Right() { return Vector2(1, 0, 0); }
+        inline static Vector2 Far() { return Vector2(0, 0, 1); }
+        inline static Vector2 Near() { return Vector2(0, 0, -1); }
+
+        //Vector2 Rotate(const Vector2& axis, const float theta);
+        //Vector2 PreRotate(const Vector2& axis, const float theta, const float rotx, const float roty);
+
+        // Addition
+        Vector2 operator+  (const T& scalar) const { return Vector2(x + scalar, y + scalar); }
+        Vector2& operator+=(const T& scalar) { x += scalar; y += scalar; return *this; }
+        Vector2 operator+  (const Vector2& other) const { return Vector2(x + other.x, y + other.y); }
+        Vector2& operator+=(const Vector2& other) { x += other.x; y += other.y; return *this; }
+        // Subtraction
+        Vector2 operator-(const T& scalar) const { return Vector2(x - scalar, y - scalar); }
+        Vector2& operator-=(const T& scalar) { x -= scalar; y -= scalar; return *this; }
+        Vector2 operator-(const Vector2& other) const { return Vector2(x - other.x, y - other.y); }
+        Vector2& operator-=(const Vector2& other) { x -= other.x; y -= other.y; return *this; }
+        // Multiplication
+        Vector2 operator*(const T& scalar) const { return Vector2(x * scalar, y * scalar); }
+        Vector2& operator*=(const T& scalar) const { x *= scalar; y *= scalar; return *this; }
+        Vector2 operator*(const Vector2& other) const { return Vector2(x * other.x, y * other.y); }
+        Vector2& operator*=(const Vector2& other) { x *= other.x; y *= other.y; return *this; }
+        // Division
+        Vector2 operator/(const T& scalar) const { return Vector2(x / scalar, y / scalar); }
+        Vector2& operator/=(const T& scalar) const { x /= scalar; y /= scalar; return *this; }
+        Vector2 operator/(const Vector2& other) const { return Vector2(x / other.x, y / other.y); }
+        Vector2& operator/=(const Vector2& other) { x /= other.x; y /= other.y; return *this; }
+        // Dot product
+        T dot(const Vector2& other) const { return x * other.x + y * other.y; }
+        // Cross product
+        //Vector2 cross(const Vector2& other) const { return Vector2(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x); }
+        // Magnitude
+        T magnitude() const { return T(std::sqrt(x * x + y * y)); }
+        // Normalize
+        Vector2& normalize() { float mag = magnitude(); x /= mag; y /= mag; return *this; }
+        // Output stream overload
+        friend std::ostream& operator<<(std::ostream& os, const Vector2& vec) {
+            os << "(" << vec.x << ", " << vec.y << ")";
+            return os;
+        }
+    };
+
+    using Vector2f = Vector2<float>;
+    using Vector2i = Vector2<int>;
+
+    template<class T>
     struct Vector3 {
         T x = 0;
         T y = 0;
@@ -194,8 +252,10 @@ namespace Cup
     template <typename T>
     struct Triangle
     {
-        std::array<Vector3<T>, 3> vertices;
-        Vector4 color;
+        Vector3<T> vertices[3];
+        Vector2<T> texCoords[3];
+
+        Vector4 color = { 255.0f, 255.0f, 255.0f, 255.0f };
 
         void Do(const std::function<void(Vector3<T>&)>& func)
         {
@@ -242,25 +302,26 @@ namespace Cup
     template<class T>
     void Mesh<T>::CreateCube()
     {
+
         triangles = {
 // SOUTH
-        	{ Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f) },
-        	{ Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 0.0f, 0.0f) },
-// EAST
-        	{ Vector3<T>(1.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f) },
-        	{ Vector3<T>(1.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 0.0f, 1.0f) },
-// NORTH
-        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f) },
-        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 1.0f) },
-// WEST
-        	{ Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 0.0f) },
-        	{ Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(0.0f, 0.0f, 0.0f) },
-// TOP
-        	{ Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 1.0f) },
-        	{ Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 0.0f) },
-// BOTTOM
-        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 0.0f) },
-        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 0.0f, 0.0f) },
+        	{ Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+            { Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 0.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
+// EAST                                                                                                                                                                                         
+         	{ Vector3<T>(1.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+        	{ Vector3<T>(1.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 0.0f, 1.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
+// NORTH                                                                                                    ,             		                                                                 
+         	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 1.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
+// WEST                                                                                                     ,             		                                                                 
+         	{ Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+        	{ Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(0.0f, 0.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
+// TOP                                                                                                      ,             		                                                                 
+         	{ Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(0.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+        	{ Vector3<T>(0.0f, 1.0f, 0.0f),    Vector3<T>(1.0f, 1.0f, 1.0f),    Vector3<T>(1.0f, 1.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
+// BOTTOM                                                                                                   ,             		                                                                 
+         	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(0.0f, 0.0f),     Vector2<T>(1.0f, 0.0f)  },
+        	{ Vector3<T>(1.0f, 0.0f, 1.0f),    Vector3<T>(0.0f, 0.0f, 0.0f),    Vector3<T>(1.0f, 0.0f, 0.0f),  Vector2<T>(0.0f, 1.0f),      Vector2<T>(1.0f, 0.0f),     Vector2<T>(1.0f, 1.0f)  },
 
         };
     }
@@ -527,14 +588,14 @@ namespace Cup
     }
 
     template<class T>
-    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd);
+    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t);
 
     template<class T>
-    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd)
+    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t)
     {
         float ad = lineStart.dot(planeN);
         float bd = lineEnd.dot(planeN);
-        float t = (-planeD - ad) / (bd - ad);
+        t = (-planeD - ad) / (bd - ad);
         Vector3<T> lineDistance = lineEnd - lineStart;
         Vector3<T> lineToIntersect = lineDistance * t;
         return lineStart + lineToIntersect;
@@ -551,14 +612,18 @@ namespace Cup
         // If distance sign is positive, point lies on "inside" of plane
         Vector3<T>* insidePoints[3]; 
         Vector3<T>* outsidePoints[3];
+        Vector2<T>* insideTPoints[3];
+        Vector2<T>* outsideTPoints[3];
         int inPointCount = 0;
         int outPointCount = 0;
 
-        for (auto& vertex : triangle.vertices)
+        for (int i = 0; i < 3; i++)
         {
+            auto& vertex = triangle.vertices[i];
+            auto& uv = triangle.texCoords[i];
             float d = (planeN.x * vertex.x + planeN.y * vertex.y + planeN.z * vertex.z + planeD);
-            if (d >= 0) { insidePoints[inPointCount++] = &vertex; }
-            else { outsidePoints[outPointCount++] = &vertex; }
+            if (d >= 0) { insidePoints[inPointCount] = &vertex; insideTPoints[inPointCount] = &uv; inPointCount++; }
+            else { outsidePoints[outPointCount] = &vertex; outsideTPoints[outPointCount] = &uv; outPointCount++; }
         }
 
         // Now classify triangle points, and break the input triangle into 
@@ -592,11 +657,20 @@ namespace Cup
 
             // The inside point is valid, so keep that...
             outTriangleA[0] = *insidePoints[0];
+            outTriangleA.texCoords[0] = *insideTPoints[0];
 
             // but the two new points are at the locations where the 
             // original sides of the triangle (lines) intersect with the plane
-            outTriangleA[1] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0]);
-            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[1]);
+            float t;
+            outTriangleA[1] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0], t);
+            outTriangleA.texCoords[1].x = t * (outsideTPoints[0]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
+            outTriangleA.texCoords[1].y = t * (outsideTPoints[0]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
+            outTriangleA.texCoords[1].w = t * (outsideTPoints[0]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
+
+            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[1], t);
+            outTriangleA.texCoords[2].x = t * (outsideTPoints[1]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
+            outTriangleA.texCoords[2].y = t * (outsideTPoints[1]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
+            outTriangleA.texCoords[2].w = t * (outsideTPoints[1]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
 
             return 1; // Return the newly formed single triangle
         }
@@ -612,19 +686,34 @@ namespace Cup
 
             outTriangleB.color = triangle.color;
 
+            outTriangleA[0] = *insidePoints[0];
+            outTriangleA[1] = *insidePoints[1];
+
+            outTriangleA.texCoords[0] = *insideTPoints[0];
+            outTriangleA.texCoords[1] = *insideTPoints[1];
+
             // The first triangle consists of the two inside points and a new
             // point determined by the location where one side of the triangle
             // intersects with the plane
-            outTriangleA[0] = *insidePoints[0];
-            outTriangleA[1] = *insidePoints[1];
-            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0]);
+            float t;
+            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0], t);
+            outTriangleA.texCoords[2].x = t * (outsideTPoints[0]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
+            outTriangleA.texCoords[2].y = t * (outsideTPoints[0]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
+            outTriangleA.texCoords[2].w = t * (outsideTPoints[0]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
 
             // The second triangle is composed of one of he inside points, a
             // new point determined by the intersection of the other side of the 
             // triangle and the plane, and the newly created point above
             outTriangleB[0] = *insidePoints[1];
             outTriangleB[1] = outTriangleA[2];
-            outTriangleB[2] = IntersectPlane(planeD, planeN, *insidePoints[1], *outsidePoints[0]);
+
+            outTriangleB.texCoords[0] = *insideTPoints[1];
+            outTriangleB.texCoords[1] = outTriangleA.texCoords[2];
+
+            outTriangleB[2] = IntersectPlane(planeD, planeN, *insidePoints[1], *outsidePoints[0], t);
+            outTriangleA.texCoords[2].x = t * (outsideTPoints[0]->x - insideTPoints[1]->x) + insideTPoints[1]->x;
+            outTriangleA.texCoords[2].y = t * (outsideTPoints[0]->y - insideTPoints[1]->y) + insideTPoints[1]->y;
+            outTriangleA.texCoords[2].w = t * (outsideTPoints[0]->w - insideTPoints[1]->w) + insideTPoints[1]->w;
 
             return 2; // Return two newly formed triangles which form a quad
         }

@@ -5,15 +5,15 @@
 #include <iostream>
 
 #define ENGINE Cup::CupEngine::Instance()
-#define SCENE Cup::CupEngine::InsScene()
+#define SCENE Cup::CupEngine::MainScene()
 
 class SandboxLayer : public Cup::Layer
 {
 public:
 	void OnAttach() override 
 	{
-		m_meshEntity = SCENE.CreateEntity();
-		m_cameraEntity = SCENE.CreateEntity();
+		m_meshEntity = SCENE->CreateEntity();
+		m_cameraEntity = SCENE->CreateEntity();
 
 		m_cube.CreateCube();
 
@@ -60,12 +60,13 @@ public:
 	{
 		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
 		{
-
+			bool show_demo_window = true;
+			ImGui::ShowDemoWindow(&show_demo_window);
 			ImGui::Begin("Viewport");
 
 			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
-			ImGui::Image((void*)2, ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image((void*)2, ImVec2(viewportPanelSize.x, viewportPanelSize.y));
 
 			ImGui::End();
 		}

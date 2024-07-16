@@ -1,2 +1,3 @@
 #define OLC_PGE_APPLICATION
-#include "olcPixelGameEngine.h"
+#define OLC_PGEX_DEAR_IMGUI_IMPLEMENTATION
+#include "ImGui/imgui_impl_pge.h"

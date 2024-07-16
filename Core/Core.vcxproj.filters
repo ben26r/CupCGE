@@ -78,6 +78,7 @@
     <ClInclude Include="vendor\CupECS\include\Register.h">
       <Filter>vendor\CupECS\include</Filter>
     </ClInclude>
+    <ClInclude Include="src\ImGui\imgui_impl_pge.h" />
     <ClInclude Include="src\ImGui\ImGuiCommand.h" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +94,9 @@
     <ClCompile Include="src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImGui\ImGuiBuild.cpp">
+      <Filter>src\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\Olc\olcConsoleGameEngine.cpp">
       <Filter>src\Olc</Filter>
     </ClCompile>
@@ -105,7 +109,6 @@
     <ClCompile Include="src\Scene\Scene.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\ImGui\ImGuiCommand.cpp" />
   </ItemGroup>
 </Project>

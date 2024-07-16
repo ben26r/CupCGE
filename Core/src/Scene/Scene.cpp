@@ -18,17 +18,13 @@ namespace Cup {
 	void Scene::Update(float deltatime)
 	{
 		std::shared_ptr<Camera> mainCamera;
-		{
-			auto& ecs = m_registry.GetAllComponents<CameraComponent>();
-			for (auto& ec : ecs)
+		m_registry.ForEachComponent<CameraComponent>([&](Entity entity, CameraComponent& component) 
 			{
-				if (ec.component.mainCamera)
+				if (component.mainCamera)
 				{
-					mainCamera = ec.component.camera;
-					break;
+					mainCamera = component.camera;
 				}
-			}
-		}
+			});
 
 		{
 			auto& ecs = m_registry.GetAllComponentsWith<MeshComponent>(family::type<TransformComponent>());

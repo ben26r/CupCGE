@@ -977,7 +977,7 @@ namespace olc
 		virtual bool OnUserCreate();
 		// Called every frame, and provides you with a time per frame value
 		virtual bool OnUserUpdate(float fElapsedTime);
-		virtual bool OnUserRender();
+		virtual bool OnUserImGuiRender();
 		// Called once on application termination, so you can be one clean coder
 		virtual bool OnUserDestroy();
 
@@ -3753,7 +3753,7 @@ namespace olc
 	bool PixelGameEngine::OnUserUpdate(float fElapsedTime)
 	{ UNUSED(fElapsedTime);  return false; }
 
-	bool PixelGameEngine::OnUserRender()
+	bool PixelGameEngine::OnUserImGuiRender()
 	{
 		return false;
 	}
@@ -4015,8 +4015,6 @@ namespace olc
 				}
 			}
 		}
-
-		OnUserRender();
 
 		// Present Graphics to screen
 		renderer->DisplayFrame();

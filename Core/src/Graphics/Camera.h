@@ -16,31 +16,29 @@ namespace Cup {
 	public:
 		Camera() = default;
 		Camera(float aspectRatio, const CameraProps& props = CameraProps()) :
-			m_near(props.cnear), m_far(props.cfar), m_fov(props.fov), m_aspectRatio(aspectRatio),
-			m_projectionMatrix(Matrix4x4f::Projection(props.fov, aspectRatio, props.cnear, props.cfar)) {}
+			cnear(props.cnear), cfar(props.cfar), fov(props.fov), aspectRatio(aspectRatio) {}
 		~Camera() = default;
 
-		inline const Matrix4x4f& GetProjection() const { return m_projectionMatrix; }
+		inline const Matrix4x4f& GetProjection() const { return Matrix4x4f::Projection(fov, aspectRatio, cnear, cfar); }
 		inline const Matrix4x4f& GetView() const { return m_viewMatrix; }
 
 		inline const Vector3f& GetPosition() const { return m_position; }
 		inline void SetPosition(const Vector3f& position) { m_position = position; RecalulateView(); }
 
-		inline void SetFOV(float fov) { m_fov = fov; }
+		inline void SetFOV(float fov) { fov = fov; }
 
+		void Resize(float width, float height);
 		void RecalulateView();
-		void RecalulateProjection();
 
-		float m_near;
-		float m_far;
-		float m_fov;
-		float m_aspectRatio;
+		float cnear;
+		float cfar;
+		float fov;
+		float aspectRatio;
 
 		float m_yaw = 0.0f;
 		Vector3f  m_lookDir;
 		Vector3f m_position;
 
-		Matrix4x4f m_projectionMatrix;
 		Matrix4x4f m_viewMatrix;
 	};
 

@@ -1,6 +1,6 @@
 workspace "CupCGE"
     architecture "x64"
-    startproject "Core"
+    startproject "Editor"
     configurations { "Debug", "Release", "Dist" }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -66,6 +66,56 @@ project "Core"
 
 project "Sandbox"
     location "Sandbox"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "On"
+
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files
+    {
+        "%{prj.name}/src/**.cpp",
+        "%{prj.name}/src/**.h"
+    }
+    includedirs
+    {
+        "Core/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.CupECS}"
+    }
+    links 
+    { 
+        "Core"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+        defines
+        {
+            "CUP_PLATFORM_WINDOWS"
+        }
+
+    filter "configurations:Debug"
+        defines "CUP_DEBUG"
+        symbols "On"
+        defines
+        {
+            "ENABLE_CUP_ASSERTS"
+        }
+
+    filter "configurations:Release"
+        defines "CUP_RELEASE"
+        optimize "On"
+
+    filter "configurations:Dist"
+        defines "CUP_DIST"
+        optimize "On"
+
+project "Editor"
+    location "Editor"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
