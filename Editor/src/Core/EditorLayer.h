@@ -14,7 +14,7 @@ namespace Cup {
 
 		void OnAttach() override;
 
-		void OnDetach() override {}
+		void OnDetach() override;
 
 		void OnUpdate(float deltatime) override;
 

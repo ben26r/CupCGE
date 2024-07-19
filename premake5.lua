@@ -8,6 +8,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["CupECS"] = "Core/vendor/CupECS/include"
 IncludeDir["ImGui"] = "Core/vendor/ImGui"
+IncludeDir["Json"] = "Core/vendor/nlohmannJson/single_include/nlohmann"
 
 include "Core/vendor/ImGui"
 
@@ -31,6 +32,7 @@ project "Core"
     {
         "%{prj.name}/src",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.Json}",
         "%{IncludeDir.CupECS}"
     }
     links

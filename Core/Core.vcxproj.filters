@@ -57,6 +57,15 @@
     <ClInclude Include="src\Graphics\Renderer.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Texture.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\ImGuiCommand.h">
+      <Filter>src\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\imgui_impl_pge.h">
+      <Filter>src\ImGui</Filter>
+    </ClInclude>
     <ClInclude Include="src\Math\CupMath.h">
       <Filter>src\Math</Filter>
     </ClInclude>
@@ -78,8 +87,7 @@
     <ClInclude Include="vendor\CupECS\include\Register.h">
       <Filter>vendor\CupECS\include</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGui\imgui_impl_pge.h" />
-    <ClInclude Include="src\ImGui\ImGuiCommand.h" />
+    <ClInclude Include="src\Scene\ComponentSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">
@@ -94,7 +102,13 @@
     <ClCompile Include="src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Texture.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\ImGui\ImGuiBuild.cpp">
+      <Filter>src\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\ImGuiCommand.cpp">
       <Filter>src\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Olc\olcConsoleGameEngine.cpp">
@@ -109,6 +123,6 @@
     <ClCompile Include="src\Scene\Scene.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\ImGuiCommand.cpp" />
+    <ClCompile Include="src\Scene\ComponentSerializer.cpp" />
   </ItemGroup>
 </Project>

@@ -45,4 +45,9 @@ namespace Cup {
 		ImGui::DragFloat("Fov", &component.camera->fov, 0.1f);
 		ImGui::DragFloat3("Position", &component.camera->m_position.x, 0.1f);
 	}
+
+	template <>
+	void InspectorStyles::GetStyle<MeshComponent>(MeshComponent& component)
+	{
+	}
 }

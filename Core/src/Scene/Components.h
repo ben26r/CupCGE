@@ -32,20 +32,13 @@ namespace Cup {
 		}
 	};
 
-	struct Material
-	{
-		//Color
-		olc::Sprite sprite;
-	};
-
 	struct MeshComponent
 	{
 		Meshf mesh;
-		Material material;
 
 		MeshComponent() = default;
 		explicit MeshComponent(const Meshf& _mesh)
-			: mesh(_mesh) 
+			: mesh(_mesh)
 		{ 
 		
 		}
@@ -60,5 +53,5 @@ namespace Cup {
 		explicit CameraComponent(const std::shared_ptr<Camera>& _camera, bool _mainCamera = false) : camera(_camera), mainCamera(_mainCamera)  { }
 	};
 
-	using ComponentTypes = std::tuple<TagComponent, TransformComponent, CameraComponent>;
+	using ComponentTypes = std::tuple<TagComponent, TransformComponent, CameraComponent, MeshComponent>;
 }

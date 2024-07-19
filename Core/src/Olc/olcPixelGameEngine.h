@@ -1213,6 +1213,7 @@ namespace olc
 #endif
 	public: // Branding
 		std::string sAppName;
+		bool isEditor = false;
 
 	private: // Inner mysterious workings
 		olc::Sprite*     pDrawTarget = nullptr;
@@ -4001,7 +4002,8 @@ namespace olc
 					}
 
 					// temp solution
-					//renderer->DrawLayerQuad(layer->vOffset, layer->vScale, layer->tint);
+					if (!isEditor)
+						renderer->DrawLayerQuad(layer->vOffset, layer->vScale, layer->tint);
 
 					// Display Decals in order for this layer
 					for (auto& decal : layer->vecDecalInstance)

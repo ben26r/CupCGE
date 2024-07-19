@@ -20,8 +20,11 @@ namespace Cup {
 		inline CupEntity& CreateEntity(const std::string& tag = "entity") { CupEntity entity(&m_registry); entity.AddComponent<TagComponent>(tag); return entity; }
 
 		void Update(float deltatime);
+		void Serialize(const std::string& filepath);
+		void Deserialize(const std::string& filepath);
 
 	private:
+		olc::Sprite sprites;
 		Registry m_registry;
 	};
 

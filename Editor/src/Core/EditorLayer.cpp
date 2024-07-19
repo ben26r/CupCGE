@@ -13,26 +13,32 @@ namespace Cup {
 	void EditorLayer::OnAttach()
 	{
         m_mainScene = Cup::CupEngine::MainScene();
+        //m_mainScene->Deserialize("assets/scene.json");
+
 		m_meshEntity = m_mainScene->CreateEntity("model");
 		m_cameraEntity = m_mainScene->CreateEntity("camera");
 
-		m_cube.CreateCube();
+        for (int i = 0; i < 1000; i++)
+        {
+            Meshf cube;
+            cube.CreateCube();
 
-		for (auto& tri : m_cube.triangles)
-		{
-			tri.color = Cup::Vector4(155, 155, 155, 255);
-		}
-
-		m_meshEntity.AddComponent<Cup::MeshComponent>(m_cube);
-		m_meshEntity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(0.0f, 0.0f, 10.0f), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
-
-        auto& meshComp = m_meshEntity.GetComponent<Cup::MeshComponent>();
-        meshComp.material.sprite.LoadFromFile("assets/Dirt.png");
+            auto entity = m_mainScene->CreateEntity("model");
+            entity.AddComponent<Cup::MeshComponent>(cube);
+            entity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(i % 50, 0.0f, 5.0f + (i / 50)), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
+        }
+        //auto& meshComp = m_meshEntity.GetComponent<Cup::MeshComponent>();
+        //meshComp.material.sprite.LoadFromFile("assets/Dirt.png");
 
 		m_camera = std::make_shared<Cup::Camera>(0.8f);
 		m_cameraEntity.AddComponent<Cup::CameraComponent>(m_camera, true);
         m_cameraEntity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(0.0f, 0.0f, 10.0f), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
 	}
+
+    void EditorLayer::OnDetach()
+    {
+        Cup::CupEngine::MainScene()->Serialize("assets/scene.json");
+    }
 
 	void EditorLayer::OnUpdate(float deltatime)
 	{
@@ -160,4 +166,6 @@ namespace Cup {
 
         ImGui::End();
     }
+
+    
 }

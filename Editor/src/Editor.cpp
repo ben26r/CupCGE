@@ -8,6 +8,7 @@ namespace Cup {
 	{
 	public:
 		CupEditor() {
+			isEditor = true;
 			PushLayer(new EditorLayer(this));
 		}
 		~CupEditor() {

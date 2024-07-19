@@ -76,7 +76,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>CUP_PLATFORM_WINDOWS;CUP_BUILD_DLL;GLFW_INCLUDE_NONE;CUP_DEBUG;ENABLE_CUP_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\nlohmannJson\single_include\nlohmann;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -93,7 +93,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>CUP_PLATFORM_WINDOWS;CUP_BUILD_DLL;GLFW_INCLUDE_NONE;CUP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\nlohmannJson\single_include\nlohmann;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -114,7 +114,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>CUP_PLATFORM_WINDOWS;CUP_BUILD_DLL;GLFW_INCLUDE_NONE;CUP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\ImGui;vendor\nlohmannJson\single_include\nlohmann;vendor\CupECS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Scene\ComponentSerializer.h" />
     <ClInclude Include="src\Core\Base.h" />
     <ClInclude Include="src\Core\CupEngine.h" />
     <ClInclude Include="src\Core\EntryPoint.h" />
@@ -139,6 +140,7 @@
     <ClInclude Include="src\Cup.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
+    <ClInclude Include="src\Graphics\Texture.h" />
     <ClInclude Include="src\ImGui\ImGuiCommand.h" />
     <ClInclude Include="src\ImGui\imgui_impl_pge.h" />
     <ClInclude Include="src\Math\CupMath.h" />
@@ -150,10 +152,12 @@
     <ClInclude Include="vendor\CupECS\include\Register.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Scene\ComponentSerializer.cpp" />
     <ClCompile Include="src\Core\CupEngine.cpp" />
     <ClCompile Include="src\Core\LayerStack.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\ImGui\ImGuiCommand.cpp" />
     <ClCompile Include="src\Olc\olcConsoleGameEngine.cpp" />

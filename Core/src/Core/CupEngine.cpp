@@ -13,6 +13,12 @@ namespace Cup {
 		s_instance = this;
 	}
 
+	bool CupEngine::OnUserDestroy()
+	{
+		m_layerstack.~LayerStack();
+		return true;
+	}
+
 	bool CupEngine::OnUserCreate()
 	{
 		bool r = Renderer::Init(this);
@@ -27,12 +33,12 @@ namespace Cup {
 	bool CupEngine::OnUserUpdate(float fElapsedTime)
 	{
 		//m_theta += 1.0f * fElapsedTime;
-		Renderer::Start();
+		//Renderer::Start();
 
 		for (auto& layer : m_layerstack)
 			layer->OnUpdate(fElapsedTime);
 		m_mainScene->Update(fElapsedTime);
-		Renderer::End();
+		//Renderer::End();
 
 		return true;
 	}
@@ -45,4 +51,5 @@ namespace Cup {
 		ImGuiCommand::End();
 		return true;
 	}
+
 }

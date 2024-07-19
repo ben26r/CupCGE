@@ -134,14 +134,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Scene\InspectorStyles.h" />
     <ClInclude Include="src\Core\EditorLayer.h" />
+    <ClInclude Include="src\Scene\InspectorStyles.h" />
     <ClInclude Include="src\Scene\SceneHierarchy.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Scene\InspectorStyles.cpp" />
     <ClCompile Include="src\Core\EditorLayer.cpp" />
     <ClCompile Include="src\Editor.cpp" />
+    <ClCompile Include="src\Scene\InspectorStyles.cpp" />
     <ClCompile Include="src\Scene\SceneHierarchy.cpp" />
   </ItemGroup>
   <ItemGroup>

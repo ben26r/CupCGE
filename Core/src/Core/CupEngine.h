@@ -30,6 +30,7 @@ namespace Cup {
 		bool OnUserCreate() override;
 		bool OnUserUpdate(float fElapsedTime) override;
         bool OnUserImGuiRender() override;
+        bool OnUserDestroy() override;
 
         void PushLayer(Layer* layer) { m_layerstack.PushLayer(layer); layer->OnAttach(); }
 

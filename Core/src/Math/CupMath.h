@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cmath>
 #include <array>
+#include <strstream>
+
+#include "Olc/olcPixelGameEngine.h"
 
 namespace Cup
 {
@@ -16,7 +19,7 @@ namespace Cup
         T w = 1;
 
         Vector2() = default;
-        Vector2(T _x, T _y) : x(_x), y(_y) {}
+        Vector2(T _x, T _y, T _w = 1) : x(_x), y(_y), w(_w) {}
         Vector2(const Vector2& other) : x(other.x), y(other.y), w(other.w) {}
 
         inline static Vector2 Up() { return Vector2(0, 1, 0); }
@@ -30,27 +33,28 @@ namespace Cup
         //Vector2 PreRotate(const Vector2& axis, const float theta, const float rotx, const float roty);
 
         // Addition
-        Vector2 operator+  (const T& scalar) const { return Vector2(x + scalar, y + scalar); }
+        Vector2 operator+  (const T& scalar) const { return Vector2(x + scalar, y + scalar, w + scalar); }
         Vector2& operator+=(const T& scalar) { x += scalar; y += scalar; return *this; }
-        Vector2 operator+  (const Vector2& other) const { return Vector2(x + other.x, y + other.y); }
+        Vector2 operator+  (const Vector2& other) const { return Vector2(x + other.x, y + other.y, w + other.w); }
         Vector2& operator+=(const Vector2& other) { x += other.x; y += other.y; return *this; }
         // Subtraction
-        Vector2 operator-(const T& scalar) const { return Vector2(x - scalar, y - scalar); }
+        Vector2 operator-(const T& scalar) const { return Vector2(x - scalar, y - scalar, w - scalar); }
         Vector2& operator-=(const T& scalar) { x -= scalar; y -= scalar; return *this; }
-        Vector2 operator-(const Vector2& other) const { return Vector2(x - other.x, y - other.y); }
+        Vector2 operator-(const Vector2& other) const { return Vector2(x - other.x, y - other.y, w - other.w); }
         Vector2& operator-=(const Vector2& other) { x -= other.x; y -= other.y; return *this; }
         // Multiplication
-        Vector2 operator*(const T& scalar) const { return Vector2(x * scalar, y * scalar); }
+        Vector2 operator*(const T& scalar) const { return Vector2(x * scalar, y * scalar, w * scalar); }
         Vector2& operator*=(const T& scalar) const { x *= scalar; y *= scalar; return *this; }
-        Vector2 operator*(const Vector2& other) const { return Vector2(x * other.x, y * other.y); }
+        Vector2 operator*(const Vector2& other) const { return Vector2(x * other.x, y * other.y, w * other.w); }
         Vector2& operator*=(const Vector2& other) { x *= other.x; y *= other.y; return *this; }
         // Division
-        Vector2 operator/(const T& scalar) const { return Vector2(x / scalar, y / scalar); }
+        Vector2 operator/(const T& scalar) const { return Vector2(x / scalar, y / scalar, w / scalar); }
         Vector2& operator/=(const T& scalar) const { x /= scalar; y /= scalar; return *this; }
-        Vector2 operator/(const Vector2& other) const { return Vector2(x / other.x, y / other.y); }
+        Vector2 operator/(const Vector2& other) const { return Vector2(x / other.x, y / other.y, w / other.w); }
         Vector2& operator/=(const Vector2& other) { x /= other.x; y /= other.y; return *this; }
         // Dot product
         T dot(const Vector2& other) const { return x * other.x + y * other.y; }
+        Vector2 lerp(const Vector2& v1, const double t) { return this->operator*(T(1.0 - t)) + (v1 * T(t)); }
         // Cross product
         //Vector2 cross(const Vector2& other) const { return Vector2(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x); }
         // Magnitude
@@ -75,7 +79,7 @@ namespace Cup
         T w = 1;
 
         Vector3() = default;
-        Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+        Vector3(float _x, float _y, float _z, float _w = 1) : x(_x), y(_y), z(_z), w(_w) {}
         Vector3(const Vector3& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 
         inline static Vector3 Up()    { return Vector3( 0,  1,  0); }
@@ -104,7 +108,7 @@ namespace Cup
         Vector3 operator*(const Vector3& other) const { return Vector3(x * other.x, y * other.y, z * other.z); }
         Vector3& operator*=(const Vector3& other) { x *= other.x; y *= other.y; z *= other.z; return *this; }
         // Division
-        Vector3 operator/(const T& scalar) const { return Vector3(x / scalar, y / scalar, z / scalar); }
+        Vector3 operator/(const T& scalar) const { return Vector3(x / scalar, y / scalar, z / scalar, w); }
         Vector3& operator/=(const T& scalar) const { x /= scalar; y /= scalar; z /= scalar; return *this; }
         Vector3 operator/(const Vector3& other) const { return Vector3(x / other.x, y / other.y, z / other.z); }
         Vector3& operator/=(const Vector3& other) { x /= other.x; y /= other.y; z /= other.z; return *this; }
@@ -252,10 +256,9 @@ namespace Cup
     template <typename T>
     struct Triangle
     {
-        Vector3<T> vertices[3];
-        Vector2<T> texCoords[3];
-
-        Vector4 color = { 255.0f, 255.0f, 255.0f, 255.0f };
+        std::array<Vector3<T>, 3> vertices;
+        std::array<Vector2<T>, 3> texCoords;
+        std::array<olc::Pixel, 3> colors = { olc::WHITE, olc::WHITE, olc::WHITE };
 
         void Do(const std::function<void(Vector3<T>&)>& func)
         {
@@ -292,7 +295,7 @@ namespace Cup
     public:
         std::vector<Triangle<T>> triangles;
 
-        bool LoadModel(const std::string& filepath);
+        bool LoadModel(const std::string& filepath, bool hasTexture = false);
 
         void CreateCube();
     };
@@ -398,40 +401,83 @@ namespace Cup
 #pragma endregion
  
     template <class T>
-    bool Mesh<T>::LoadModel(const std::string& filepath)
+    bool Mesh<T>::LoadModel(const std::string& filepath, bool hasTexture)
     {
-        std::ifstream file(filepath);
-        CUP_ASSERT_FUNC(file.is_open(), return false, "Failed to load model with path " << filepath << "!");
+        std::ifstream f(filepath);
+        if (!f.is_open())
+            return false;
 
-        std::vector<Vector3<T>> vertices;
-        std::string line;
-        while (std::getline(file, line))
+        // Local cache of verts
+        std::vector<Vector3f> verts;
+        std::vector<Vector2f> texs;
+
+        while (!f.eof())
         {
-            std::istringstream iss(line);
-            std::string prefix;
-            iss >> prefix;
+            char line[128];
+            f.getline(line, 128);
 
-            if (prefix == "v")
+            std::strstream s;
+            s << line;
+
+            char junk;
+
+            if (line[0] == 'v')
             {
-                Vector3<T> vertex;
-                iss >> vertex.x >> vertex.y >> vertex.z;
-                vertices.push_back(vertex);
-            }
-            else if (prefix == "f")
-            {
-                Triangle<T> tri;
-                int vertexIndices[3];
-                for (int i = 0; i < 3; ++i)
+                if (line[1] == 't')
                 {
-                    iss >> vertexIndices[i];
-                    // OBJ files are 1-indexed
-                    tri[i] = vertices[vertexIndices[i] - 1];
+                    Vector2f v;
+                    s >> junk >> junk >> v.x >> v.y;
+                    // A little hack for the spyro texture
+                    //v.u = 1.0f - v.u;
+                    //v.v = 1.0f - v.v;
+                    texs.push_back(v);
                 }
-                triangles.push_back(tri);
+                else
+                {
+                    Vector3f v;
+                    s >> junk >> v.x >> v.y >> v.z;
+                    verts.push_back(v);
+                }
+            }
+
+            if (!hasTexture)
+            {
+                if (line[0] == 'f')
+                {
+                    int f[3];
+                    s >> junk >> f[0] >> f[1] >> f[2];
+                    triangles.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
+                }
+            }
+            else
+            {
+                if (line[0] == 'f')
+                {
+                    s >> junk;
+
+                    std::string tokens[6];
+                    int nTokenCount = -1;
+
+
+                    while (!s.eof())
+                    {
+                        char c = s.get();
+                        if (c == ' ' || c == '/')
+                            nTokenCount++;
+                        else
+                            tokens[nTokenCount].append(1, c);
+                    }
+
+                    tokens[nTokenCount].pop_back();
+
+
+                    triangles.push_back({ verts[stoi(tokens[0]) - 1], verts[stoi(tokens[2]) - 1], verts[stoi(tokens[4]) - 1],
+                        texs[stoi(tokens[1]) - 1], texs[stoi(tokens[3]) - 1], texs[stoi(tokens[5]) - 1] });
+
+                }
+
             }
         }
-
-        file.close();
         return true;
     }
 
@@ -588,11 +634,12 @@ namespace Cup
     }
 
     template<class T>
-    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t);
+    Vector3<T> IntersectPlane(const Vector3f& planeP, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t);
 
     template<class T>
-    Vector3<T> IntersectPlane(float planeD, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t)
+    Vector3<T> IntersectPlane(const Vector3f& planeP, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd, float& t)
     {
+        float planeD = -planeN.dot(planeP);
         float ad = lineStart.dot(planeN);
         float bd = lineEnd.dot(planeN);
         t = (-planeD - ad) / (bd - ad);
@@ -606,11 +653,14 @@ namespace Cup
     //float planeD = -planeN.dot({ 0.0f, 0.0f, 2.0f });
 
     template<class T>
-    int ClipAgainstPlane(float planeD, Vector3<T> planeN, Triangle<T>& triangle, Triangle<T>& outTriangleA, Triangle<T>& outTriangleB)
+    int ClipAgainstPlane(Vector3<T> planeP, Vector3<T> planeN, Triangle<T>& triangle, Triangle<T>& outTriangleA, Triangle<T>& outTriangleB)
     {
+        planeN.normalize();
+        float planeD = planeN.dot(planeP);
+
         // Create two temporary storage arrays to classify points either side of plane
         // If distance sign is positive, point lies on "inside" of plane
-        Vector3<T>* insidePoints[3]; 
+        Vector3<T>* insidePoints[3];
         Vector3<T>* outsidePoints[3];
         Vector2<T>* insideTPoints[3];
         Vector2<T>* outsideTPoints[3];
@@ -619,9 +669,10 @@ namespace Cup
 
         for (int i = 0; i < 3; i++)
         {
+            //triangle.texCoords[i].w = 1;
             auto& vertex = triangle.vertices[i];
             auto& uv = triangle.texCoords[i];
-            float d = (planeN.x * vertex.x + planeN.y * vertex.y + planeN.z * vertex.z + planeD);
+            float d = (planeN.x * vertex.x + planeN.y * vertex.y + planeN.z * vertex.z - planeD);
             if (d >= 0) { insidePoints[inPointCount] = &vertex; insideTPoints[inPointCount] = &uv; inPointCount++; }
             else { outsidePoints[outPointCount] = &vertex; outsideTPoints[outPointCount] = &uv; outPointCount++; }
         }
@@ -653,7 +704,7 @@ namespace Cup
             // the plane, the triangle simply becomes a smaller triangle
 
             // Copy appearance info to new triangle
-            outTriangleA.color = triangle.color;
+            outTriangleA.colors = triangle.colors;
 
             // The inside point is valid, so keep that...
             outTriangleA[0] = *insidePoints[0];
@@ -662,12 +713,12 @@ namespace Cup
             // but the two new points are at the locations where the 
             // original sides of the triangle (lines) intersect with the plane
             float t;
-            outTriangleA[1] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0], t);
+            outTriangleA[1] = IntersectPlane(planeP, planeN, *insidePoints[0], *outsidePoints[0], t);
             outTriangleA.texCoords[1].x = t * (outsideTPoints[0]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
             outTriangleA.texCoords[1].y = t * (outsideTPoints[0]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
             outTriangleA.texCoords[1].w = t * (outsideTPoints[0]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
 
-            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[1], t);
+            outTriangleA[2] = IntersectPlane(planeP, planeN, *insidePoints[0], *outsidePoints[1], t);
             outTriangleA.texCoords[2].x = t * (outsideTPoints[1]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
             outTriangleA.texCoords[2].y = t * (outsideTPoints[1]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
             outTriangleA.texCoords[2].w = t * (outsideTPoints[1]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
@@ -682,13 +733,11 @@ namespace Cup
             // represent a quad with two new triangles
 
             // Copy appearance info to new triangles
-            outTriangleA.color = triangle.color;
-
-            outTriangleB.color = triangle.color;
+            outTriangleA.colors = triangle.colors;
+            outTriangleB.colors = triangle.colors;
 
             outTriangleA[0] = *insidePoints[0];
             outTriangleA[1] = *insidePoints[1];
-
             outTriangleA.texCoords[0] = *insideTPoints[0];
             outTriangleA.texCoords[1] = *insideTPoints[1];
 
@@ -696,7 +745,7 @@ namespace Cup
             // point determined by the location where one side of the triangle
             // intersects with the plane
             float t;
-            outTriangleA[2] = IntersectPlane(planeD, planeN, *insidePoints[0], *outsidePoints[0], t);
+            outTriangleA[2] = IntersectPlane(planeP, planeN, *insidePoints[0], *outsidePoints[0], t);
             outTriangleA.texCoords[2].x = t * (outsideTPoints[0]->x - insideTPoints[0]->x) + insideTPoints[0]->x;
             outTriangleA.texCoords[2].y = t * (outsideTPoints[0]->y - insideTPoints[0]->y) + insideTPoints[0]->y;
             outTriangleA.texCoords[2].w = t * (outsideTPoints[0]->w - insideTPoints[0]->w) + insideTPoints[0]->w;
@@ -705,15 +754,14 @@ namespace Cup
             // new point determined by the intersection of the other side of the 
             // triangle and the plane, and the newly created point above
             outTriangleB[0] = *insidePoints[1];
-            outTriangleB[1] = outTriangleA[2];
-
             outTriangleB.texCoords[0] = *insideTPoints[1];
+            outTriangleB[1] = outTriangleA[2];
             outTriangleB.texCoords[1] = outTriangleA.texCoords[2];
 
-            outTriangleB[2] = IntersectPlane(planeD, planeN, *insidePoints[1], *outsidePoints[0], t);
-            outTriangleA.texCoords[2].x = t * (outsideTPoints[0]->x - insideTPoints[1]->x) + insideTPoints[1]->x;
-            outTriangleA.texCoords[2].y = t * (outsideTPoints[0]->y - insideTPoints[1]->y) + insideTPoints[1]->y;
-            outTriangleA.texCoords[2].w = t * (outsideTPoints[0]->w - insideTPoints[1]->w) + insideTPoints[1]->w;
+            outTriangleB[2] = IntersectPlane(planeP, planeN, *insidePoints[1], *outsidePoints[0], t);
+            outTriangleB.texCoords[2].x = t * (outsideTPoints[0]->x - insideTPoints[1]->x) + insideTPoints[1]->x;
+            outTriangleB.texCoords[2].y = t * (outsideTPoints[0]->y - insideTPoints[1]->y) + insideTPoints[1]->y;
+            outTriangleB.texCoords[2].w = t * (outsideTPoints[0]->w - insideTPoints[1]->w) + insideTPoints[1]->w;
 
             return 2; // Return two newly formed triangles which form a quad
         }
