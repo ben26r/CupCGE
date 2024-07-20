@@ -149,6 +149,8 @@
     <ClInclude Include="src\Scene\Components.h" />
     <ClInclude Include="src\Scene\CupEntity.h" />
     <ClInclude Include="src\Scene\Scene.h" />
+    <ClInclude Include="src\Scene\ScriptableEntity.h" />
+    <ClInclude Include="src\Graphics\TextureStorage.h" />
     <ClInclude Include="vendor\CupECS\include\Register.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +166,7 @@
     <ClCompile Include="src\Olc\olcPixelGameEngine.cpp" />
     <ClCompile Include="src\Scene\CupEntity.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />
+    <ClCompile Include="src\Graphics\TextureStorage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\ImGui\ImGui.vcxproj">

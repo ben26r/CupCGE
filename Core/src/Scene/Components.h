@@ -4,6 +4,10 @@
 #include "Math/CupMath.h"
 #include "Graphics/Camera.h"
 #include "Olc/olcPixelGameEngine.h"
+#include "Graphics/Texture.h"
+#include "ScriptableEntity.h"
+#include "Scene.h"
+#include <functional>
 
 namespace Cup {
 
@@ -32,12 +36,14 @@ namespace Cup {
 		}
 	};
 
-	struct MeshComponent
+	struct MeshRendererComponent
 	{
 		Meshf mesh;
+		uint32_t texture = 0;
+		olc::Pixel color = { 255, 255, 255 };
 
-		MeshComponent() = default;
-		explicit MeshComponent(const Meshf& _mesh)
+		MeshRendererComponent() = default;
+		explicit MeshRendererComponent(const Meshf& _mesh)
 			: mesh(_mesh)
 		{ 
 		
@@ -53,5 +59,24 @@ namespace Cup {
 		explicit CameraComponent(const std::shared_ptr<Camera>& _camera, bool _mainCamera = false) : camera(_camera), mainCamera(_mainCamera)  { }
 	};
 
-	using ComponentTypes = std::tuple<TagComponent, TransformComponent, CameraComponent, MeshComponent>;
+	struct NativeScriptComponent
+	{
+		ScriptableEntity* instance = nullptr;
+		bool started = false;
+
+		template<typename T>
+		void Bind(std::shared_ptr<Scene>& scene, Entity entity)
+		{
+			instance = static_cast<ScriptableEntity*>(new T());
+			instance->Init(scene, entity);
+		}
+
+		void Delete()
+		{
+			delete instance;
+			instance = nullptr;
+		}
+	};
+
+	using ComponentTypes = std::tuple<TagComponent, TransformComponent, CameraComponent, MeshRendererComponent>;
 }

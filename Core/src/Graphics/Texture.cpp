@@ -4,11 +4,10 @@
 
 namespace Cup {
 
-	Texture& Texture::Create(const std::string& filepath, const TextureProps& props)
+	Texture::Texture(const std::string& _filepath, const TextureProps& props)
+		: m_rendererID(Renderer::CreateTexture(_filepath)), filepath(_filepath)
 	{
-		Texture texture;
-		texture.m_rendererID = Renderer::CreateTexture(filepath);
-		return texture;
+
 	}
 
 }

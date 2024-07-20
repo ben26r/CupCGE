@@ -8,7 +8,7 @@
 #include "Camera.h"
 #include "Math/CupMath.h"
 #include "Olc/olcPixelGameEngine.h"
-#include "Texture.h"
+#include "TextureStorage.h"
 #include <array>
 
 namespace Cup {
@@ -19,24 +19,24 @@ namespace Cup {
 
 		static bool Init(olc::PixelGameEngine* appPtr);
 
-		static void Submit(const Matrix4x4f& matrix, const Meshf& mesh, olc::Sprite* sprite);
+		static void Submit(const Matrix4x4f& matrix, const Meshf& mesh, uint32_t texture = 0, olc::Pixel color = olc::Pixel(255, 255, 255));
 		static uint32_t CreateTexture(const std::string& filepath, const TextureProps& props = TextureProps());
+		static const TextureStorage& GetTextureStorage() { return m_rendererData.sumTextures; }
 
         static void Sort();
 		static void Start(const std::shared_ptr<Camera>& camera);
-		static void Flush(olc::Sprite* sprite);
+		static void Flush(const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color);
         static void End();
 
-        static void DrawCupTriangle(const Trianglef& triangle, olc::Sprite* sprite);
+        static void DrawCupTriangle(const Trianglef& triangle, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color);
 		//static void Renderer::DrawString(const std::string& text, const Vector4& color);
 	private:
-		static void FillTexturedTriangle(const std::array<Vector3f, 3>& vPoints, std::array<Vector2f, 3> vTex, olc::Sprite* sprTex, std::array<olc::Pixel, 3> vColour = { olc::WHITE, olc::WHITE, olc::WHITE });
+		static void FillTexturedTriangle(const std::array<Vector3f, 3>& vPoints, std::array<Vector2f, 3> vTex, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color);
 	private:
 		struct RendererData
 		{
 			std::vector<Trianglef> sumTriangles;
-			std::vector<olc::Sprite> sumTextures;
-			uint32_t textureIndex = 0;
+			TextureStorage sumTextures;
 
 			float* depthBuffer = nullptr;
 

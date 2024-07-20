@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #define ENABLE_CUP_ASSERTS
 #define ENABLE_CUP_LOGGING

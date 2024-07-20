@@ -27,7 +27,7 @@ namespace Cup {
 	}
 
 	template <>
-	void ComponentSerializer::Serialize<MeshComponent>(nlohmann::json& file, const MeshComponent& component)
+	void ComponentSerializer::Serialize<MeshRendererComponent>(nlohmann::json& file, const MeshRendererComponent& component)
 	{
 		file["MeshComponent"] = {};
 	}
@@ -79,13 +79,13 @@ namespace Cup {
 	}
 
 	template <>
-	void ComponentSerializer::Deserialize<MeshComponent>(const nlohmann::json& file, const MeshComponent& component, Registry& registry, Entity entity)
+	void ComponentSerializer::Deserialize<MeshRendererComponent>(const nlohmann::json& file, const MeshRendererComponent& component, Registry& registry, Entity entity)
 	{
 		if (file.contains("MeshComponent"))
 		{
 			Meshf mesh;
 			mesh.CreateCube();
-			registry.AddComponent<MeshComponent>(entity, mesh);
+			registry.AddComponent<MeshRendererComponent>(entity, mesh);
 		}
 	}
 

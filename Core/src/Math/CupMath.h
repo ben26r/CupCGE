@@ -79,7 +79,7 @@ namespace Cup
         T w = 1;
 
         Vector3() = default;
-        Vector3(float _x, float _y, float _z, float _w = 1) : x(_x), y(_y), z(_z), w(_w) {}
+        Vector3(T _x, T _y, T _z, T _w = 1) : x(_x), y(_y), z(_z), w(_w) {}
         Vector3(const Vector3& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 
         inline static Vector3 Up()    { return Vector3( 0,  1,  0); }
@@ -129,58 +129,6 @@ namespace Cup
 
     using Vector3f = Vector3<float>;
     using Vector3i = Vector3<int>;
-
-    struct Vector4 {
-        float x = 0;
-        float y = 0;
-        float z = 0;
-        float w = 0;
-
-        Vector4() = default;
-        Vector4(float X, float Y, float Z, float W) : x(X), y(Y), z(Z), w(W) {}
-
-        // Addition
-        Vector4 operator+(const Vector4& other) const {
-            return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
-        }
-
-        // Subtraction
-        Vector4 operator-(const Vector4& other) const {
-            return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
-        }
-
-        // Scalar multiplication
-        Vector4 operator*(float scalar) const {
-            return Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
-        }
-
-        // Scalar division
-        Vector4 operator/(float scalar) const {
-            return Vector4(x / scalar, y / scalar, z / scalar, w / scalar);
-        }
-
-        // Dot product
-        float dot(const Vector4& other) const {
-            return x * other.x + y * other.y + z * other.z + w * other.w;
-        }
-
-        // Magnitude
-        float magnitude() const {
-            return std::sqrt(x * x + y * y + z * z + w * w);
-        }
-
-        // Normalize
-        Vector4 normalize() const {
-            float mag = magnitude();
-            return Vector4(x / mag, y / mag, z / mag, w / mag);
-        }
-
-        // Output stream overload
-        friend std::ostream& operator<<(std::ostream& os, const Vector4& vec) {
-            os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ")";
-            return os;
-        }
-    };
 
     template<class T>
     struct Matrix4x4
@@ -258,7 +206,6 @@ namespace Cup
     {
         std::array<Vector3<T>, 3> vertices;
         std::array<Vector2<T>, 3> texCoords;
-        std::array<olc::Pixel, 3> colors = { olc::WHITE, olc::WHITE, olc::WHITE };
 
         void Do(const std::function<void(Vector3<T>&)>& func)
         {
@@ -703,9 +650,6 @@ namespace Cup
             // Triangle<T> should be clipped. As two points lie outside
             // the plane, the triangle simply becomes a smaller triangle
 
-            // Copy appearance info to new triangle
-            outTriangleA.colors = triangle.colors;
-
             // The inside point is valid, so keep that...
             outTriangleA[0] = *insidePoints[0];
             outTriangleA.texCoords[0] = *insideTPoints[0];
@@ -731,10 +675,6 @@ namespace Cup
             // Triangle<T> should be clipped. As two points lie inside the plane,
             // the clipped triangle becomes a "quad". Fortunately, we can
             // represent a quad with two new triangles
-
-            // Copy appearance info to new triangles
-            outTriangleA.colors = triangle.colors;
-            outTriangleB.colors = triangle.colors;
 
             outTriangleA[0] = *insidePoints[0];
             outTriangleA[1] = *insidePoints[1];

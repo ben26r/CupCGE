@@ -88,6 +88,8 @@
       <Filter>vendor\CupECS\include</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\ComponentSerializer.h" />
+    <ClInclude Include="src\Scene\ScriptableEntity.h" />
+    <ClInclude Include="src\Graphics\TextureStorage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">
@@ -124,5 +126,6 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\ComponentSerializer.cpp" />
+    <ClCompile Include="src\Graphics\TextureStorage.cpp" />
   </ItemGroup>
 </Project>

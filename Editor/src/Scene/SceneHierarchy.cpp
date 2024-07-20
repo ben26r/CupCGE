@@ -24,15 +24,15 @@ namespace Cup {
         if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
-                m_context->CreateEntity();
+                Cup::CupEntity(m_context);
 
             if (ImGui::MenuItem("Create Cube"))
             {
-                auto entity = m_context->CreateEntity();
+                auto entity = Cup::CupEntity(m_context, "Cube");
                 Meshf mesh;
                 mesh.CreateCube();
                 entity.AddComponent<TransformComponent>();
-                entity.AddComponent<MeshComponent>(mesh);
+                entity.AddComponent<MeshRendererComponent>(mesh);
             }
 
             ImGui::EndPopup();

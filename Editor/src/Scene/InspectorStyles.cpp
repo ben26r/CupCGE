@@ -47,7 +47,15 @@ namespace Cup {
 	}
 
 	template <>
-	void InspectorStyles::GetStyle<MeshComponent>(MeshComponent& component)
+	void InspectorStyles::GetStyle<MeshRendererComponent>(MeshRendererComponent& component)
 	{
+		//ImGui::InputInt("Texture ID", &component.texture);
+
+		//CupEngine::Instance().DrawSprite({ 0,0 }, Renderer::GetTextureStorage().GetSprite(component.texture).get(), 0.1f);
+		CupEngine::Instance().DrawPartialSprite({ 0,0 }, Renderer::GetTextureStorage().GetSprite(component.texture).get(), { 0,0 }, { 32, 32 });
+
+		Vector3i color = { component.color.r, component.color.g, component.color.b };
+		if (ImGui::DragInt3("Color", &color.x))
+			component.color.r = color.x; component.color.g = color.y; component.color.b = color.z;
 	}
 }

@@ -7,3 +7,4 @@
 #include "Scene/Components.h"
 #include "imgui.h"
 #include "ImGui/ImGuiCommand.h"
+#include "Scene/ScriptableEntity.h"

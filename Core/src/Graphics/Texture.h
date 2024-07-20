@@ -16,11 +16,14 @@ namespace Cup {
 	class Texture
 	{
 	public:
-		//static Texture& Create(const TextureProps& props = TextureProps());
-		static Texture& Create(const std::string& filepath, const TextureProps& props = TextureProps());
-		//void Bind();
+		Texture() = default;
+		explicit Texture(const std::string& _filepath, const TextureProps& props = TextureProps());
+		~Texture() = default;
+
+		inline uint32_t GetIndex() const { return m_rendererID; }
 	private:
-		uint32_t m_rendererID;
+		uint32_t m_rendererID = 0;
+		const std::string filepath;
 	};
 
 }

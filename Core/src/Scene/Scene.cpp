@@ -9,7 +9,6 @@
 namespace Cup {
 
 	Scene::Scene()
-		: sprites("assets/Dirt.png")
 	{
 
 	}
@@ -21,8 +20,18 @@ namespace Cup {
 
 	void Scene::Update(float deltatime)
 	{
+		m_registry.ForEachComponent<NativeScriptComponent>([&](Entity entity, NativeScriptComponent& component)
+			{
+				if (!component.started)
+				{
+					component.instance->Start();
+					component.started = true;
+				}
+
+				component.instance->Update(deltatime);
+			});
+
 		std::shared_ptr<Camera> mainCamera;
-		std::shared_ptr<Camera> light;
 		m_registry.ForEachComponent<CameraComponent>([&](Entity entity, CameraComponent& component) 
 			{
 				if (component.mainCamera)
@@ -33,11 +42,11 @@ namespace Cup {
 
 		{
 			Renderer::Start(mainCamera);
-			auto& ecs = m_registry.GetAllComponentsWith<MeshComponent>(family::type<TransformComponent>());
+			auto& ecs = m_registry.GetAllComponentsWith<MeshRendererComponent>(family::type<TransformComponent>());
 			for (auto& ec : ecs)
 			{
 				auto& transform = m_registry.GetComponent<TransformComponent>(ec.entity);
-				Renderer::Submit(transform.GetTransform() , ec.component.mesh, &sprites);
+				Renderer::Submit(transform.GetTransform() , ec.component.mesh, ec.component.texture, ec.component.color);
 			}
 			Renderer::End();
 		}

@@ -3,36 +3,42 @@
 
 #include "Core/Base.h"
 #include "Register.h"
+#include <string>
 
 namespace Cup {
+
+	class Scene;
 
 	class CupEntity
 	{
 	public:
 
 		CupEntity() = default;
-		explicit CupEntity(Registry* _registry);
+		CupEntity(std::shared_ptr<Scene>& _scene, const std::string& tag = "EmptyTransform");
 
 		template<typename T, typename ... Args>
-		inline void AddComponent(Args&&... args)
+		inline T& AddComponent(Args&&... args)
 		{
-			m_registry->AddComponent<T>(m_entity, std::forward<Args>(args)...);
+			return m_scene->m_registry.AddComponent<T>(m_entity, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		inline T& GetComponent()
 		{
-			return m_registry->GetComponent<T>(m_entity);
+			return m_scene->m_registry.GetComponent<T>(m_entity);
 		}
 
 		template<typename T>
 		inline bool HasComponent()
 		{
-			return m_registry->HasComponent<T>(m_entity);
+			return m_scene->m_registry.HasComponent<T>(m_entity);
 		}
-	private:
-		Registry* m_registry;
-		Entity m_entity;
+
+		inline Entity GetIndex() { return m_entity; }
+
+	protected:
+		std::shared_ptr<Scene> m_scene = nullptr;
+		Entity m_entity = -1;
 	};
 
 }
