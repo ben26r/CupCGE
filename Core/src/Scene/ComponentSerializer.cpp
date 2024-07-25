@@ -1,6 +1,9 @@
 #include "ComponentSerializer.h"
 
 #include "Components.h"
+#include "Graphics/Texture.h"
+#include "Script/ScriptRegistry.h"
+#include "Core/CupEngine.h"
 
 namespace Cup {
 
@@ -10,10 +13,24 @@ namespace Cup {
 	{
 	}
 
+	template <typename T>
+	void ComponentSerializer::Deserialize(const nlohmann::json& file, const T& component, Registry& registry, Entity entity)
+	{
+	}
+
 	template <>
 	void ComponentSerializer::Serialize<TagComponent>(nlohmann::json& file, const TagComponent& component)
 	{
 		file["TagComponent"] = { {"tag", component.tag } };
+	}
+	template <>
+	void ComponentSerializer::Deserialize<TagComponent>(const nlohmann::json& file, const TagComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("TagComponent"))
+		{
+			auto tag = file["TagComponent"]["tag"].get<std::string>();
+			registry.AddComponent<TagComponent>(entity, tag);
+		}
 	}
 
 	template <>
@@ -25,43 +42,6 @@ namespace Cup {
 			{"scale", { component.scale.x, component.scale.y, component.scale.z }}
 		};
 	}
-
-	template <>
-	void ComponentSerializer::Serialize<MeshRendererComponent>(nlohmann::json& file, const MeshRendererComponent& component)
-	{
-		file["MeshComponent"] = {};
-	}
-
-	template <>
-	void ComponentSerializer::Serialize<CameraComponent>(nlohmann::json& file, const CameraComponent& component)
-	{
-		file["CameraComponent"] = {
-			{"mainCamera", component.mainCamera},
-			{"cnear", component.camera->cnear},
-			{"cfar", component.camera->cfar},
-			{"fov", component.camera->fov},
-			{"aspectRatio", component.camera->aspectRatio},
-			{"position", { component.camera->m_position.x, component.camera->m_position.y, component.camera->m_position.z }},
-			{"lookDir", { component.camera->m_lookDir.x, component.camera->m_lookDir.y, component.camera->m_lookDir.z }},
-			{"yaw", component.camera->m_yaw}
-		};
-	}
-
-	template <typename T>
-	void ComponentSerializer::Deserialize(const nlohmann::json& file, const T& component, Registry& registry, Entity entity)
-	{
-	}
-
-	template <>
-	void ComponentSerializer::Deserialize<TagComponent>(const nlohmann::json& file, const TagComponent& component, Registry& registry, Entity entity)
-	{
-		if (file.contains("TagComponent"))
-		{
-			auto tag = file["TagComponent"]["tag"].get<std::string>();
-			registry.AddComponent<TagComponent>(entity, tag);
-		}
-	}
-
 	template <>
 	void ComponentSerializer::Deserialize<TransformComponent>(const nlohmann::json& file, const TransformComponent& component, Registry& registry, Entity entity)
 	{
@@ -79,16 +59,43 @@ namespace Cup {
 	}
 
 	template <>
+	void ComponentSerializer::Serialize<MeshRendererComponent>(nlohmann::json& file, const MeshRendererComponent& component)
+	{
+		file["MeshComponent"] = 
+		{
+			{ "texture", component.texture },
+			{ "tiling", { component.tiling.x, component.tiling.y }},
+			{ "color", { component.color.r, component.color.g, component.color.b, component.color.a }}
+		};
+	}
+	template <>
 	void ComponentSerializer::Deserialize<MeshRendererComponent>(const nlohmann::json& file, const MeshRendererComponent& component, Registry& registry, Entity entity)
 	{
 		if (file.contains("MeshComponent"))
 		{
 			Meshf mesh;
 			mesh.CreateCube();
-			registry.AddComponent<MeshRendererComponent>(entity, mesh);
+			auto color = file.at("MeshComponent").at("color");
+			auto tiling = file.at("MeshComponent").at("tiling");
+			registry.AddComponent<MeshRendererComponent>(entity, mesh, file.at("MeshComponent").at("texture").get<uint32_t>(), 
+				olc::Pixel(color[0], color[1], color[2], color[3]), Vector2f(tiling[0], tiling[1]));
 		}
 	}
 
+	template <>
+	void ComponentSerializer::Serialize<CameraComponent>(nlohmann::json& file, const CameraComponent& component)
+	{
+		file["CameraComponent"] = {
+			{"mainCamera", component.mainCamera},
+			{"cnear", component.camera->cnear},
+			{"cfar", component.camera->cfar},
+			{"fov", component.camera->fov},
+			{"aspectRatio", component.camera->aspectRatio},
+			{"position", { component.camera->m_position.x, component.camera->m_position.y, component.camera->m_position.z }},
+			{"lookDir", { component.camera->m_lookDir.x, component.camera->m_lookDir.y, component.camera->m_lookDir.z }},
+			{"yaw", component.camera->m_yaw}
+		};
+	}
 	template <>
 	void ComponentSerializer::Deserialize<CameraComponent>(const nlohmann::json& file, const CameraComponent& component, Registry& registry, Entity entity)
 	{
@@ -113,6 +120,46 @@ namespace Cup {
 			camera->RecalulateView(); // Ensure the view matrix is recalculated after setting all properties
 
 			registry.AddComponent<CameraComponent>(entity, camera, mainCamera);
+		}
+	}
+
+	template <>
+	void ComponentSerializer::Serialize<BoxColliderComponent>(nlohmann::json& file, const BoxColliderComponent& component)
+	{
+		file["BoxColliderComponent"] = { {"scale", { component.scale.x, component.scale.y, component.scale.z } } };
+	}
+	template <>
+	void ComponentSerializer::Deserialize<BoxColliderComponent>(const nlohmann::json& file, const BoxColliderComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("BoxColliderComponent"))
+		{
+			auto scale = file.at("BoxColliderComponent").at("scale");
+			registry.AddComponent<BoxColliderComponent>(entity, Vector3f(scale[0], scale[1], scale[2]));
+		}
+	}
+
+	template <>
+	void ComponentSerializer::Serialize<ScriptComponent>(nlohmann::json& file, const ScriptComponent& component)
+	{
+		file["NativeScriptComponent"] = {
+			{"scriptType", component.scriptType}
+		};
+	}
+
+	template <>
+	void ComponentSerializer::Deserialize<ScriptComponent>(const nlohmann::json& file, const ScriptComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("NativeScriptComponent"))
+		{
+			std::string scriptType = file.at("NativeScriptComponent").at("scriptType").get<std::string>();
+			ScriptComponent nsc;
+			nsc.instance = ScriptRegistry::Instance().CreateScript(scriptType);
+			
+			CUP_ASSERT_FUNC(nsc.instance, return, "Failed to create script!");
+
+			nsc.instance->Init(CupEngine::ActiveScene(), entity);
+			nsc.scriptType = scriptType;
+			registry.AddComponent<ScriptComponent>(entity, std::move(nsc));
 		}
 	}
 }

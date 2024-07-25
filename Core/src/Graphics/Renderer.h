@@ -10,18 +10,29 @@
 #include "Olc/olcPixelGameEngine.h"
 #include "TextureStorage.h"
 #include <array>
+#include "Scene/Components.h"
 
 namespace Cup {
 
 	class Renderer
 	{
 	public:
+		struct RendererStats
+		{
+			uint32_t submits = 0;
+			uint32_t triangles = 0;
+			uint32_t pixels = 0;
+		};
+	public:
 
 		static bool Init(olc::PixelGameEngine* appPtr);
 
-		static void Submit(const Matrix4x4f& matrix, const Meshf& mesh, uint32_t texture = 0, olc::Pixel color = olc::Pixel(255, 255, 255));
+		static void Submit(const Matrix4x4f& matrix, const MeshRendererComponent& meshComponent);
+		static void DrawLine(const Vector3f& start, const Vector3f& end, const olc::Pixel& color = olc::Pixel(255, 255, 255));
+
+		static uint32_t CreateTexture(const TextureProps& props = TextureProps());
 		static uint32_t CreateTexture(const std::string& filepath, const TextureProps& props = TextureProps());
-		static const TextureStorage& GetTextureStorage() { return m_rendererData.sumTextures; }
+		static TextureStorage& GetTextureStorage() { return m_rendererData->sumTextures; }
 
         static void Sort();
 		static void Start(const std::shared_ptr<Camera>& camera);
@@ -29,12 +40,17 @@ namespace Cup {
         static void End();
 
         static void DrawCupTriangle(const Trianglef& triangle, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color);
+		static const RendererStats& GetStats() { return m_rendererData->stats; }
+		static const float* GetDepthBuffer() { return m_rendererData->depthBuffer; }
 		//static void Renderer::DrawString(const std::string& text, const Vector4& color);
 	private:
 		static void FillTexturedTriangle(const std::array<Vector3f, 3>& vPoints, std::array<Vector2f, 3> vTex, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color);
 	private:
+
 		struct RendererData
 		{
+			RendererStats stats;
+
 			std::vector<Trianglef> sumTriangles;
 			TextureStorage sumTextures;
 
@@ -50,6 +66,6 @@ namespace Cup {
             olc::PixelGameEngine* appPtr = nullptr;
 		};
 
-		static RendererData m_rendererData;
+		static RendererData* m_rendererData;
 	};
 }

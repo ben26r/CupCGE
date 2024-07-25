@@ -10,6 +10,10 @@
 
 #include "Olc/olcPixelGameEngine.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include <glm/gtx/intersect.hpp>
+
 namespace Cup
 {
     template<class T>
@@ -44,7 +48,7 @@ namespace Cup
         Vector2& operator-=(const Vector2& other) { x -= other.x; y -= other.y; return *this; }
         // Multiplication
         Vector2 operator*(const T& scalar) const { return Vector2(x * scalar, y * scalar, w * scalar); }
-        Vector2& operator*=(const T& scalar) const { x *= scalar; y *= scalar; return *this; }
+        Vector2& operator*=(const T& scalar) { x *= scalar; y *= scalar; return *this; }
         Vector2 operator*(const Vector2& other) const { return Vector2(x * other.x, y * other.y, w * other.w); }
         Vector2& operator*=(const Vector2& other) { x *= other.x; y *= other.y; return *this; }
         // Division
@@ -104,12 +108,12 @@ namespace Cup
         Vector3& operator-=(const Vector3& other) { x -= other.x; y -= other.y; z -= other.z; return *this; }
         // Multiplication
         Vector3 operator*(const T& scalar) const { return Vector3(x * scalar, y * scalar, z * scalar); }
-        Vector3& operator*=(const T& scalar) const { x *= scalar; y *= scalar; z *= scalar; return *this; }
+        Vector3& operator*=(const T& scalar) { x *= scalar; y *= scalar; z *= scalar; return *this; }
         Vector3 operator*(const Vector3& other) const { return Vector3(x * other.x, y * other.y, z * other.z); }
         Vector3& operator*=(const Vector3& other) { x *= other.x; y *= other.y; z *= other.z; return *this; }
         // Division
         Vector3 operator/(const T& scalar) const { return Vector3(x / scalar, y / scalar, z / scalar, w); }
-        Vector3& operator/=(const T& scalar) const { x /= scalar; y /= scalar; z /= scalar; return *this; }
+        Vector3& operator/=(const T& scalar)  { x /= scalar; y /= scalar; z /= scalar; return *this; }
         Vector3 operator/(const Vector3& other) const { return Vector3(x / other.x, y / other.y, z / other.z); }
         Vector3& operator/=(const Vector3& other) { x /= other.x; y /= other.y; z /= other.z; return *this; }
         // Dot product
@@ -511,6 +515,7 @@ namespace Cup
     template<class T>
     Matrix4x4<T> Matrix4x4<T>::Rotation(const Vector3<T>& axis, T angle)
     {
+        angle = glm::radians(angle);
         Matrix4x4 matrix;
 
         float rotx = cosf(angle);
@@ -590,6 +595,21 @@ namespace Cup
         float ad = lineStart.dot(planeN);
         float bd = lineEnd.dot(planeN);
         t = (-planeD - ad) / (bd - ad);
+        Vector3<T> lineDistance = lineEnd - lineStart;
+        Vector3<T> lineToIntersect = lineDistance * t;
+        return lineStart + lineToIntersect;
+    }
+
+    template<class T>
+    Vector3<T> IntersectPlane(const Vector3f& planeP, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd);
+
+    template<class T>
+    Vector3<T> IntersectPlane(const Vector3f& planeP, const Vector3<T>& planeN, const Vector3<T>& lineStart, const Vector3<T>& lineEnd)
+    {
+        float planeD = -planeN.dot(planeP);
+        float ad = lineStart.dot(planeN);
+        float bd = lineEnd.dot(planeN);
+        float t = (-planeD - ad) / (bd - ad);
         Vector3<T> lineDistance = lineEnd - lineStart;
         Vector3<T> lineToIntersect = lineDistance * t;
         return lineStart + lineToIntersect;
@@ -729,6 +749,12 @@ namespace Cup
         result.w = vector.x * matrix[0][3] + vector.y * matrix[1][3] + vector.z * matrix[2][3] + vector.w * matrix[3][3];
 
         return result;
+    }
+
+    static bool CheckCollision(const Vector3f& originA, const Vector3f& scaleA, const Vector3f& originB, const Vector3f& scaleB) {
+        return (originA.x <= scaleB.x && scaleA.x >= originB.x) &&
+            (originA.y <= scaleB.y && scaleA.y >= originB.y) &&
+            (originA.z <= scaleB.z && scaleA.z >= originB.z);
     }
 }
 

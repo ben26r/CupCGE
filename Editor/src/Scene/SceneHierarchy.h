@@ -2,6 +2,8 @@
 
 #include "Cup.h"
 
+#include <vector>
+
 namespace Cup {
 
 	class SceneHierarchy
@@ -12,10 +14,11 @@ namespace Cup {
 
 		void OnImGuiRender();
 	private:
+		void DrawComponents();
 		void DrawEntityNode(Entity entity, const std::string& name);
 	private:
 		std::shared_ptr<Scene> m_context;
-		int m_selectedEntity = -1;
+		std::vector<int> m_selectedEntity;
 	};
 
 }

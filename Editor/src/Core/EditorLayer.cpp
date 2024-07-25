@@ -1,88 +1,31 @@
 #include "EditorLayer.h"
 
+#include "../Scripts/CameraController.h"
+#include "../Scripts/EnemyController.h"
+
 #define ENGINE Cup::CupEngine::Instance()
 
 namespace Cup {
 
     EditorLayer::EditorLayer(CupEngine* instance)
-        : m_sceneHierarchy(Cup::CupEngine::MainScene()), m_instance(instance)
+        : m_sceneHierarchy(Cup::CupEngine::ActiveScene()), m_instance(instance)
     {
        //instance->SetLayerCustomRenderFunction(0, std::bind(&EditorLayer::RenderViewport, this));
     }
 
 	void EditorLayer::OnAttach()
 	{
-        m_mainScene = Cup::CupEngine::MainScene();
-        //m_mainScene->Deserialize("assets/scene.json");
+        m_mainScene = Cup::CupEngine::ActiveScene();
+        m_mainScene->Deserialize("assets/scene.json");
+        Renderer::GetTextureStorage().Deserialize("assets/resourcepack.json");
 
-		m_meshEntity = Cup::CupEntity(m_mainScene);
-		m_cameraEntity = Cup::CupEntity(m_mainScene, "Camera");
-
-        auto& tex = Texture("assets/Dirt.png");
-        auto& tex2 = Texture("assets/Dirt2.png");
-
-        for (int i = 0; i < 500; i++)
-        {
-            Meshf cube;
-            cube.CreateCube();
-
-            auto entity = Cup::CupEntity(m_mainScene);
-            entity.AddComponent<Cup::MeshRendererComponent>(cube).texture = tex.GetIndex();
-            entity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(i % 50, 0.0f, 5.0f + (i / 50)), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
-        }
-
-        for (int i = 500; i < 1000; i++)
-        {
-            Meshf cube;
-            cube.CreateCube();
-
-            auto entity = Cup::CupEntity(m_mainScene);
-            entity.AddComponent<Cup::MeshRendererComponent>(cube).texture = tex2.GetIndex();
-            entity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(i % 50, 0.0f, 5.0f + (i / 50)), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
-        }
-        //auto& meshComp = m_meshEntity.GetComponent<Cup::MeshComponent>();
-        //meshComp.material.sprite.LoadFromFile("assets/Dirt.png");
-
-		m_camera = std::make_shared<Cup::Camera>(0.8f);
-		m_cameraEntity.AddComponent<Cup::CameraComponent>(m_camera, true);
-        m_cameraEntity.AddComponent<Cup::TransformComponent>(Cup::Vector3f(0.0f, 0.0f, 10.0f), Cup::Vector3f(), Cup::Vector3f(1.0f, 1.0f, 1.0f));
-
-        class CameraController : public ScriptableEntity
-        {
-        public:
-
-            void Update(float deltatime) override
-            {
-                auto& m_camera = GetComponent<CameraComponent>().camera;
-
-                if (ENGINE.GetKey(olc::Key::LEFT).bHeld)  m_camera->m_position.x -= 10.0f * deltatime;
-                if (ENGINE.GetKey(olc::Key::RIGHT).bHeld) m_camera->m_position.x += 10.0f * deltatime;
-                if (ENGINE.GetKey(olc::Key::UP).bHeld)    m_camera->m_position.y += 10.0f * deltatime;
-                if (ENGINE.GetKey(olc::Key::DOWN).bHeld)  m_camera->m_position.y -= 10.0f * deltatime;
-
-
-                Cup::Vector3<float> foward = m_camera->m_lookDir * 10 * deltatime;
-
-                if (ENGINE.GetKey(olc::Key::S).bHeld)
-                    m_camera->m_position -= foward;
-
-                if (ENGINE.GetKey(olc::Key::W).bHeld)
-                    m_camera->m_position += foward;
-
-                if (ENGINE.GetKey(olc::Key::A).bHeld)
-                    m_camera->m_yaw -= 2.0f * deltatime;
-
-                if (ENGINE.GetKey(olc::Key::D).bHeld)
-                    m_camera->m_yaw += 2.0f * deltatime;
-            }
-        };
-
-        m_cameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>(m_mainScene, m_cameraEntity.GetIndex());
+        //Renderer::GetTextureStorage().SetTextureProps(1, olc::Sprite::PERIODIC);
 	}
 
     void EditorLayer::OnDetach()
     {
-        Cup::CupEngine::MainScene()->Serialize("assets/scene.json");
+        Cup::CupEngine::ActiveScene()->Serialize("assets/scene.json");
+        Renderer::GetTextureStorage().Serialize("assets/resourcepack.json");
     }
 
 	void EditorLayer::OnUpdate(float deltatime)
@@ -90,7 +33,7 @@ namespace Cup {
         if (m_isViewportFocus)
         {
         }
-		m_camera->RecalulateView();
+        UpdateColliders();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -123,11 +66,6 @@ namespace Cup {
         if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
             window_flags |= ImGuiWindowFlags_NoBackground;
 
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
         ImGui::Begin("DockSpace Demo", &p_open, window_flags);
         if (opt_fullscreen)
             ImGui::PopStyleVar(2);
@@ -166,6 +104,15 @@ namespace Cup {
 
         ImGui::End();
 
+        ImGui::Begin("Renderer Stats");
+
+        auto& stats = Renderer::GetStats();
+        ImGui::Text("Submits: %d", stats.submits);
+        ImGui::Text("Triangles: %d", stats.triangles);
+        ImGui::Text("Pixels: %d", stats.pixels);
+
+        ImGui::End();
+
         RenderViewport();
 
         m_sceneHierarchy.OnImGuiRender();
@@ -184,7 +131,10 @@ namespace Cup {
         // TODO
         // - Either use a vector2 to cache the viewport size or figure out how opge handels textures
         //if (target->width != viewportPanelSize.x || target->height != viewportPanelSize.y)
-        m_camera->Resize(viewportPanelSize.x, viewportPanelSize.y);
+        //m_camera->Resize(viewportPanelSize.x, viewportPanelSize.y);
+        m_mainScene->GetRegistry().ForEachComponent<CameraComponent>([&](Entity entity, CameraComponent& component) {
+            component.camera->Resize(viewportPanelSize.x, viewportPanelSize.y);
+            });
         m_isViewportFocus   = ImGui::IsWindowFocused();
         m_isViewportHovered = ImGui::IsWindowHovered();
 
@@ -193,5 +143,45 @@ namespace Cup {
         ImGui::End();
     }
 
-    
+    void EditorLayer::UpdateColliders()
+    {
+        m_mainScene->GetRegistry().ForEachComponent<BoxColliderComponent>([&](Entity entity, BoxColliderComponent& component)
+            {
+                TransformComponent transform = m_mainScene->GetRegistry().GetComponent<TransformComponent>(entity);
+
+                if (component.showOutline)
+                {
+                    Vector3f min = transform.position;
+                    Vector3f max = component.transformScale;
+
+                    // Define the 8 vertices of the box
+                    Vector3f vertices[8] = {
+                        {min.x, min.y, min.z},
+                        {max.x, min.y, min.z},
+                        {max.x, max.y, min.z},
+                        {min.x, max.y, min.z},
+                        {min.x, min.y, max.z},
+                        {max.x, min.y, max.z},
+                        {max.x, max.y, max.z},
+                        {min.x, max.y, max.z}
+                    };
+
+                    // Draw the edges of the box
+                    Renderer::DrawLine(vertices[0], vertices[1], olc::RED);
+                    Renderer::DrawLine(vertices[1], vertices[2], olc::RED);
+                    Renderer::DrawLine(vertices[2], vertices[3], olc::RED);
+                    Renderer::DrawLine(vertices[3], vertices[0], olc::RED);
+
+                    Renderer::DrawLine(vertices[4], vertices[5], olc::RED);
+                    Renderer::DrawLine(vertices[5], vertices[6], olc::RED);
+                    Renderer::DrawLine(vertices[6], vertices[7], olc::RED);
+                    Renderer::DrawLine(vertices[7], vertices[4], olc::RED);
+
+                    Renderer::DrawLine(vertices[0], vertices[4], olc::RED);
+                    Renderer::DrawLine(vertices[1], vertices[5], olc::RED);
+                    Renderer::DrawLine(vertices[2], vertices[6], olc::RED);
+                    Renderer::DrawLine(vertices[3], vertices[7], olc::RED);
+                }
+            });
+    }
 }

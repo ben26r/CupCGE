@@ -37,6 +37,7 @@ namespace Cup {
 
 		float m_yaw = 0.0f;
 		Vector3f  m_lookDir;
+		Vector3f m_right;
 		Vector3f m_position;
 
 		Matrix4x4f m_viewMatrix;

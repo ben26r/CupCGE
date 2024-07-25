@@ -22,7 +22,7 @@ namespace Cup {
 	{
     public:
         static constexpr CupEngine& Instance() { return *s_instance; }
-        static inline std::shared_ptr<Scene>& MainScene() { return s_instance->GetScene(); }
+        static inline std::shared_ptr<Scene>& ActiveScene() { return s_instance->GetActiveScene(); }
 	public:
         explicit CupEngine();
         ~CupEngine() = default;
@@ -34,7 +34,9 @@ namespace Cup {
 
         void PushLayer(Layer* layer) { m_layerstack.PushLayer(layer); layer->OnAttach(); }
 
-        inline std::shared_ptr<Scene>& GetScene() { return m_mainScene; }
+        inline std::shared_ptr<Scene>& GetActiveScene() { return m_activeScene; }
+        inline void SetActiveScene(const std::shared_ptr<Scene>& scene) { m_activeScene = scene; }
+
         inline float GetAspectRatio() const
         {
             return (float)ScreenHeight() / (float)ScreenWidth();
@@ -43,7 +45,7 @@ namespace Cup {
 	private:
 
         LayerStack m_layerstack;
-        std::shared_ptr<Scene> m_mainScene;
+        std::shared_ptr<Scene> m_activeScene;
         static CupEngine* s_instance;
 	};
 

@@ -18,6 +18,8 @@
     <ClInclude Include="src\Scene\SceneHierarchy.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\Scripts\EnemyController.h" />
+    <ClInclude Include="src\Scripts\CameraController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\EditorLayer.cpp">

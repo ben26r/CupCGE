@@ -1,0 +1,16 @@
+{
+    "textures": [
+        {
+            "filepath": "assets/Dirt.png"
+        },
+        {
+            "filepath": "assets/example.png"
+        },
+        {
+            "filepath": "assets/Dirt2.png"
+        },
+        {
+            "filepath": "assets/carpet.png"
+        }
+    ]
+}

@@ -7,10 +7,13 @@ namespace Cup {
 	CupEngine* CupEngine::s_instance = nullptr;
 
 	CupEngine::CupEngine()
-		: m_mainScene(std::make_shared<Scene>())
+		: m_activeScene(std::make_shared<Scene>())
 	{
 		CUP_ASSERT(s_instance == nullptr, "There can only be on instance of CupEngine!");
 		s_instance = this;
+
+		bool r = Renderer::Init(this);
+		CUP_ASSERT(r, "Failed to initialize Renderer!");
 	}
 
 	bool CupEngine::OnUserDestroy()
@@ -21,8 +24,6 @@ namespace Cup {
 
 	bool CupEngine::OnUserCreate()
 	{
-		bool r = Renderer::Init(this);
-		CUP_ASSERT(r, "Failed to initialize Renderer!");
 		float x = 0;
 
 		ImGuiCommand::Init(this);
@@ -35,10 +36,11 @@ namespace Cup {
 		//m_theta += 1.0f * fElapsedTime;
 		//Renderer::Start();
 
+		m_activeScene->Start();
+		m_activeScene->Update(fElapsedTime);
 		for (auto& layer : m_layerstack)
 			layer->OnUpdate(fElapsedTime);
-		m_mainScene->Update(fElapsedTime);
-		//Renderer::End();
+		m_activeScene->End();
 
 		return true;
 	}

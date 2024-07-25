@@ -21,7 +21,8 @@ namespace Cup {
 		void OnImGuiRender() override;
 
 		void RenderViewport();
-
+	private:
+		void UpdateColliders();
 	private:
 
 		CupEntity m_cameraEntity;

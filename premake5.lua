@@ -9,6 +9,7 @@ IncludeDir = {}
 IncludeDir["CupECS"] = "Core/vendor/CupECS/include"
 IncludeDir["ImGui"] = "Core/vendor/ImGui"
 IncludeDir["Json"] = "Core/vendor/nlohmannJson/single_include/nlohmann"
+IncludeDir["Glm"] = "Core/vendor/glm"
 
 include "Core/vendor/ImGui"
 
@@ -26,14 +27,16 @@ project "Core"
     {
         "%{prj.name}/src/**.cpp",
         "%{prj.name}/src/**.h",
-        "%{prj.name}/vendor/CupECS/include/**.h"
+        "%{prj.name}/vendor/CupECS/include/**.h",
+        "%{prj.name}/vendor/glm/glm/**.hpp"
     }
     includedirs
     {
         "%{prj.name}/src",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.Json}",
-        "%{IncludeDir.CupECS}"
+        "%{IncludeDir.CupECS}",
+        "%{IncludeDir.Glm}"
     }
     links
     {
@@ -85,7 +88,8 @@ project "Sandbox"
     {
         "Core/src",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.CupECS}"
+        "%{IncludeDir.CupECS}",
+        "%{IncludeDir.Glm}"
     }
     links 
     { 
@@ -135,7 +139,8 @@ project "Editor"
     {
         "Core/src",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.CupECS}"
+        "%{IncludeDir.CupECS}",
+        "%{IncludeDir.Glm}"
     }
     links 
     { 
