@@ -950,6 +950,9 @@
     </ClInclude>
     <ClInclude Include="src\Math\Raycast.h" />
     <ClInclude Include="src\Script\ScriptRegistry.h" />
+    <ClInclude Include="src\Core\Input.h" />
+    <ClInclude Include="src\Animation\SpriteAnimator.h" />
+    <ClInclude Include="src\Animation\AnimationClip.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\CupEngine.cpp">
@@ -992,5 +995,8 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Script\ScriptRegistry.cpp" />
+    <ClCompile Include="src\Core\Input.cpp" />
+    <ClCompile Include="src\Animation\SpriteAnimator.cpp" />
+    <ClCompile Include="src\Animation\AnimationClip.cpp" />
   </ItemGroup>
 </Project>

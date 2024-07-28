@@ -29,11 +29,12 @@ namespace Cup {
 
 	uint32_t TextureStorage::CreateTexture(const std::string& filepath)
 	{
-		auto& it = m_fileTextureMap.find(filepath);
+		auto& it = std::find(m_fileTextureMap.begin(), m_fileTextureMap.end(), filepath);
+		// temporary
 		if (it != m_fileTextureMap.end())
-			return it->second;
+			return std::distance(m_fileTextureMap.begin(), it) + 1;
 		m_storage.push_back(std::make_shared<olc::Sprite>(filepath));
-		m_fileTextureMap.emplace(filepath, m_currentIndex);
+		m_fileTextureMap.push_back(filepath);
 		return m_currentIndex++;
 	}
 
@@ -51,10 +52,10 @@ namespace Cup {
 	{
 		nlohmann::json texturePack;
 
-		for (const auto& pair : m_fileTextureMap)
+		for (const auto& path : m_fileTextureMap)
 		{
 			nlohmann::json texture;
-			texture["filepath"] = pair.first;
+			texture["filepath"] =  path;
 		//D:\ezram\Projects\CupCGE\Editor\assets\example.png
 			texturePack["textures"].push_back(texture);
 		}
@@ -92,5 +93,13 @@ namespace Cup {
 		{
 			std::cerr << "Failed to open file for reading: " << filepath << std::endl;
 		}
+	}
+
+	void TextureStorage::Clear()
+	{
+		m_storage.clear();
+		m_fileTextureMap.clear();
+		m_currentIndex = 0;
+		CreateTexture(1, 1);
 	}
 }

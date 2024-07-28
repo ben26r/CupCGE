@@ -26,15 +26,27 @@ namespace Cup {
         if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
-                CupEntity(m_context, "Example");
+                m_context->CreateEntity("Empty Transform");
 
             if (ImGui::MenuItem("Create Cube"))
             {
-                auto& entity = CupEntity(m_context, "Cube");
+                auto& entity = m_context->CreateEntity("Cube");
                 Meshf mesh;
                 mesh.CreateCube();
-                entity.AddComponent<TransformComponent>();
                 entity.AddComponent<MeshRendererComponent>(mesh);
+            }
+
+            if (ImGui::MenuItem("Create Camera"))
+            {
+                auto& entity = m_context->CreateEntity("Camera");
+                std::shared_ptr<Camera> camera = std::make_shared<Camera>();
+                entity.AddComponent<CameraComponent>(camera);
+            }
+
+            if (ImGui::MenuItem("Create Sprite"))
+            {
+                auto& entity = m_context->CreateEntity("Sprite");
+                entity.AddComponent<SpriteRendererComponent>();
             }
 
             ImGui::EndPopup();
@@ -92,7 +104,7 @@ namespace Cup {
                             nsc.instance = script.second();
                             if (nsc.instance)
                             {
-                                nsc.instance->Init(m_context, m_selectedEntity[i]);
+                                nsc.instance->Init(m_context.get(), m_selectedEntity[i]);
                                 nsc.scriptType = script.first;
                                 m_context->m_registry.AddComponent<ScriptComponent>(m_selectedEntity[i], std::move(nsc));
                             }
@@ -152,37 +164,6 @@ namespace Cup {
                         TransformComponent& transform = m_context->m_registry.GetComponent<TransformComponent>(m_selectedEntity[i]);
                         if (i > 0)
                             transform += ogTransform;
-
-                        Vector3f& min = transform.position;
-                        Vector3f& max = transform.position + transform.scale;
-
-                        // Define the 8 vertices of the box
-                        Vector3f vertices[8] = {
-                            {min.x, min.y, min.z},
-                            {max.x, min.y, min.z},
-                            {max.x, max.y, min.z},
-                            {min.x, max.y, min.z},
-                            {min.x, min.y, max.z},
-                            {max.x, min.y, max.z},
-                            {max.x, max.y, max.z},
-                            {min.x, max.y, max.z}
-                        };
-
-                        // Draw the edges of the box
-                        Renderer::DrawLine(vertices[0], vertices[1]);
-                        Renderer::DrawLine(vertices[1], vertices[2]);
-                        Renderer::DrawLine(vertices[2], vertices[3]);
-                        Renderer::DrawLine(vertices[3], vertices[0]);
-
-                        Renderer::DrawLine(vertices[4], vertices[5]);
-                        Renderer::DrawLine(vertices[5], vertices[6]);
-                        Renderer::DrawLine(vertices[6], vertices[7]);
-                        Renderer::DrawLine(vertices[7], vertices[4]);
-
-                        Renderer::DrawLine(vertices[0], vertices[4]);
-                        Renderer::DrawLine(vertices[1], vertices[5]);
-                        Renderer::DrawLine(vertices[2], vertices[6]);
-                        Renderer::DrawLine(vertices[3], vertices[7]);
                     }
                 }
             }
@@ -310,10 +291,7 @@ namespace Cup {
 
                 for (auto e : m_selectedEntity)
                 {
-                    m_context->m_registry.ForEachEntity(e, [&](auto& component) {
-                        using ComponentType = std::decay_t<decltype(component)>;
-                        m_context->m_registry.RemoveComponent<ComponentType>(e);
-                        });
+                    m_context->DeleteEntity(e);
                 }
                 m_selectedEntity.clear();
             }

@@ -18,8 +18,12 @@
     <ClInclude Include="src\Scene\SceneHierarchy.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scripts\EnemyController.h" />
-    <ClInclude Include="src\Scripts\CameraController.h" />
+    <ClInclude Include="assets\Scripts\EnemyController.h" />
+    <ClInclude Include="assets\Scripts\CameraController.h" />
+    <ClInclude Include="src\Scene\ContentBrowser.h" />
+    <ClInclude Include="assets\Scripts\GameManager.h" />
+    <ClInclude Include="assets\Scripts\Key.h" />
+    <ClInclude Include="assets\Scripts\GunManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\EditorLayer.cpp">
@@ -32,5 +36,6 @@
     <ClCompile Include="src\Scene\SceneHierarchy.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\ContentBrowser.cpp" />
   </ItemGroup>
 </Project>

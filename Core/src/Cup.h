@@ -14,3 +14,8 @@
 #include "imgui.h"
 #include "ImGui/ImGuiCommand.h"
 #include "Scene/ScriptableEntity.h"
+
+#include "Animation/SpriteAnimator.h"
+#include "Animation/AnimationClip.h"
+
+#include "Core/Input.h"

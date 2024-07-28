@@ -7,11 +7,11 @@ namespace Cup {
 		aspectRatio = height / width;
 	}
 
-	void Camera::RecalulateView()
+	const Matrix4x4f& Camera::GetView(const Vector3f position)
 	{
 		m_lookDir = Matrix4x4f::Rotation(Vector3f::Up(), m_yaw) * Vector3f::Far();
 		m_right = (m_lookDir.cross(Vector3f::Up())).normalize();
-		m_viewMatrix = Matrix4x4f::PointAt(m_position, m_position + m_lookDir, Vector3f::Down()).QuickInverse();
+		return Matrix4x4f::PointAt(position, position + m_lookDir, Vector3f::Down()).QuickInverse();
 	}
 
 }

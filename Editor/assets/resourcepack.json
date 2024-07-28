@@ -1,16 +1,25 @@
 {
     "textures": [
         {
-            "filepath": "assets/Dirt.png"
+            "filepath": "assets\\carpet.png"
         },
         {
-            "filepath": "assets/example.png"
+            "filepath": "assets\\example.png"
         },
         {
-            "filepath": "assets/Dirt2.png"
+            "filepath": "assets\\Dirt2.png"
         },
         {
-            "filepath": "assets/carpet.png"
+            "filepath": "assets\\Dirt3.png"
+        },
+        {
+            "filepath": "assets\\wall.png"
+        },
+        {
+            "filepath": "assets\\woodenWall.png"
+        },
+        {
+            "filepath": "assets\\stoneWall.png"
         }
     ]
 }

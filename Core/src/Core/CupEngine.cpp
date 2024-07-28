@@ -1,6 +1,7 @@
 #include "CupEngine.h"
 
 #include "ImGui/ImGuiCommand.h"
+#include "Input.h"
 
 namespace Cup {
 
@@ -11,6 +12,7 @@ namespace Cup {
 	{
 		CUP_ASSERT(s_instance == nullptr, "There can only be on instance of CupEngine!");
 		s_instance = this;
+		Input::Init(this);
 
 		bool r = Renderer::Init(this);
 		CUP_ASSERT(r, "Failed to initialize Renderer!");
@@ -46,7 +48,6 @@ namespace Cup {
 	}
 
 	bool CupEngine::OnUserImGuiRender() {
-		//This finishes the Dear ImGui and renders it to the screen
 		ImGuiCommand::Begin();
 		for (auto& layer : m_layerstack)
 			layer->OnImGuiRender();

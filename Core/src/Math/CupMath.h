@@ -74,6 +74,7 @@ namespace Cup
 
     using Vector2f = Vector2<float>;
     using Vector2i = Vector2<int>;
+    using Vector2u = Vector2<uint32_t>;
 
     template<class T>
     struct Vector3 {
@@ -211,17 +212,11 @@ namespace Cup
         std::array<Vector3<T>, 3> vertices;
         std::array<Vector2<T>, 3> texCoords;
 
-        void Do(const std::function<void(Vector3<T>&)>& func)
-        {
-            for (Vector3<T>& vertex : vertices)
-                func(vertex);
-        }
-
         void operator*=(const Matrix4x4<T>& other)
         {
-            vertices[0] = other * vertices[0];
-            vertices[1] = other * vertices[1];
             vertices[2] = other * vertices[2];
+            vertices[1] = other * vertices[1];
+            vertices[0] = other * vertices[0];
         }
 
         Triangle operator*(const Matrix4x4<T>& other) const
@@ -245,6 +240,7 @@ namespace Cup
     {
     public:
         std::vector<Triangle<T>> triangles;
+        std::string modelFilepath;
 
         bool LoadModel(const std::string& filepath, bool hasTexture = false);
 
@@ -354,6 +350,9 @@ namespace Cup
     template <class T>
     bool Mesh<T>::LoadModel(const std::string& filepath, bool hasTexture)
     {
+        triangles.clear();
+
+        modelFilepath = filepath;
         std::ifstream f(filepath);
         if (!f.is_open())
             return false;

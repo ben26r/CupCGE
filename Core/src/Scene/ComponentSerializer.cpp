@@ -63,6 +63,7 @@ namespace Cup {
 	{
 		file["MeshComponent"] = 
 		{
+			{ "filepath", component.mesh.modelFilepath },
 			{ "texture", component.texture },
 			{ "tiling", { component.tiling.x, component.tiling.y }},
 			{ "color", { component.color.r, component.color.g, component.color.b, component.color.a }}
@@ -74,13 +75,48 @@ namespace Cup {
 		if (file.contains("MeshComponent"))
 		{
 			Meshf mesh;
-			mesh.CreateCube();
+			std::string& filepath = file.at("MeshComponent").at("filepath").get<std::string>();
+			if (!filepath.empty())
+				mesh.LoadModel(filepath);
+			else
+				mesh.CreateCube();
 			auto color = file.at("MeshComponent").at("color");
 			auto tiling = file.at("MeshComponent").at("tiling");
-			registry.AddComponent<MeshRendererComponent>(entity, mesh, file.at("MeshComponent").at("texture").get<uint32_t>(), 
+
+			uint32_t textureIndex = file.at("MeshComponent").at("texture").get<uint32_t>();
+			if (!Renderer::GetTextureStorage().HasTexture(textureIndex))
+				textureIndex = 0;
+			registry.AddComponent<MeshRendererComponent>(entity, mesh, textureIndex, 
 				olc::Pixel(color[0], color[1], color[2], color[3]), Vector2f(tiling[0], tiling[1]));
 		}
 	}
+
+	template <>
+	void ComponentSerializer::Serialize<SpriteRendererComponent>(nlohmann::json& file, const SpriteRendererComponent& component)
+	{
+		file["SpriteComponent"] =
+		{
+			{ "texture", component.texture },
+			{ "tiling", { component.tiling.x, component.tiling.y }},
+			{ "color", { component.color.r, component.color.g, component.color.b, component.color.a }}
+		};
+	}
+	template <>
+	void ComponentSerializer::Deserialize<SpriteRendererComponent>(const nlohmann::json& file, const SpriteRendererComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("SpriteComponent"))
+		{
+			auto color = file.at("SpriteComponent").at("color");
+			auto tiling = file.at("SpriteComponent").at("tiling");
+
+			uint32_t textureIndex = file.at("SpriteComponent").at("texture").get<uint32_t>();
+			if (!Renderer::GetTextureStorage().HasTexture(textureIndex))
+				textureIndex = 0;
+			registry.AddComponent<SpriteRendererComponent>(entity, textureIndex,
+				olc::Pixel(color[0], color[1], color[2], color[3]), Vector2f(tiling[0], tiling[1]));
+		}
+	}
+
 
 	template <>
 	void ComponentSerializer::Serialize<CameraComponent>(nlohmann::json& file, const CameraComponent& component)
@@ -91,7 +127,6 @@ namespace Cup {
 			{"cfar", component.camera->cfar},
 			{"fov", component.camera->fov},
 			{"aspectRatio", component.camera->aspectRatio},
-			{"position", { component.camera->m_position.x, component.camera->m_position.y, component.camera->m_position.z }},
 			{"lookDir", { component.camera->m_lookDir.x, component.camera->m_lookDir.y, component.camera->m_lookDir.z }},
 			{"yaw", component.camera->m_yaw}
 		};
@@ -105,7 +140,6 @@ namespace Cup {
 			auto cfar = file.at("CameraComponent").at("cfar").get<float>();
 			auto fov = file.at("CameraComponent").at("fov").get<float>();
 			auto aspectRatio = file.at("CameraComponent").at("aspectRatio").get<float>();
-			auto pos = file.at("CameraComponent").at("position");
 			auto lookDir = file.at("CameraComponent").at("lookDir");
 			auto yaw = file.at("CameraComponent").at("yaw").get<float>();
 
@@ -114,10 +148,8 @@ namespace Cup {
 			camera->cfar = cfar;
 			camera->fov = fov;
 			camera->aspectRatio = aspectRatio;
-			camera->SetPosition(Vector3f(pos[0], pos[1], pos[2]));
 			camera->m_lookDir = Vector3f(lookDir[0], lookDir[1], lookDir[2]);
 			camera->m_yaw = yaw;
-			camera->RecalulateView(); // Ensure the view matrix is recalculated after setting all properties
 
 			registry.AddComponent<CameraComponent>(entity, camera, mainCamera);
 		}
@@ -126,7 +158,10 @@ namespace Cup {
 	template <>
 	void ComponentSerializer::Serialize<BoxColliderComponent>(nlohmann::json& file, const BoxColliderComponent& component)
 	{
-		file["BoxColliderComponent"] = { {"scale", { component.scale.x, component.scale.y, component.scale.z } } };
+		file["BoxColliderComponent"] = { 
+			{"scale", { component.scale.x, component.scale.y, component.scale.z } }, 
+			{"autoScale", component.autoScale }
+		};
 	}
 	template <>
 	void ComponentSerializer::Deserialize<BoxColliderComponent>(const nlohmann::json& file, const BoxColliderComponent& component, Registry& registry, Entity entity)
@@ -134,7 +169,23 @@ namespace Cup {
 		if (file.contains("BoxColliderComponent"))
 		{
 			auto scale = file.at("BoxColliderComponent").at("scale");
+			//bool autoScale = file.at("BoxColliderComponent").at("autoScale").get<bool>();
 			registry.AddComponent<BoxColliderComponent>(entity, Vector3f(scale[0], scale[1], scale[2]));
+		}
+	}
+
+	template <>
+	void ComponentSerializer::Serialize<MeshColliderComponent>(nlohmann::json& file, const MeshColliderComponent& component)
+	{
+		file["MeshColliderComponent"] = { };
+	}
+
+	template <>
+	void ComponentSerializer::Deserialize<MeshColliderComponent>(const nlohmann::json& file, const MeshColliderComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("MeshColliderComponent"))
+		{
+			registry.AddComponent<MeshColliderComponent>(entity);
 		}
 	}
 
@@ -157,9 +208,24 @@ namespace Cup {
 			
 			CUP_ASSERT_FUNC(nsc.instance, return, "Failed to create script!");
 
-			nsc.instance->Init(CupEngine::ActiveScene(), entity);
+			nsc.instance->Init(CupEngine::ActiveScene().get(), entity);
 			nsc.scriptType = scriptType;
 			registry.AddComponent<ScriptComponent>(entity, std::move(nsc));
+		}
+	}
+
+	template <>
+	void ComponentSerializer::Serialize<SpriteAnimatorComponent>(nlohmann::json& file, const SpriteAnimatorComponent& component)
+	{
+		file["SpriteAnimatorComponent"] = { };
+	}
+
+	template <>
+	void ComponentSerializer::Deserialize<SpriteAnimatorComponent>(const nlohmann::json& file, const SpriteAnimatorComponent& component, Registry& registry, Entity entity)
+	{
+		if (file.contains("SpriteAnimatorComponent"))
+		{
+			registry.AddComponent<SpriteAnimatorComponent>(entity);
 		}
 	}
 }

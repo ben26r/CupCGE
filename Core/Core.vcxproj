@@ -131,6 +131,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Animation\AnimationClip.h" />
+    <ClInclude Include="src\Animation\SpriteAnimator.h" />
+    <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Script\ScriptRegistry.h" />
     <ClInclude Include="src\Core\Base.h" />
     <ClInclude Include="src\Core\CupEngine.h" />
@@ -434,6 +437,9 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Animation\AnimationClip.cpp" />
+    <ClCompile Include="src\Animation\SpriteAnimator.cpp" />
+    <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Script\ScriptRegistry.cpp" />
     <ClCompile Include="src\Core\CupEngine.cpp" />
     <ClCompile Include="src\Core\LayerStack.cpp" />

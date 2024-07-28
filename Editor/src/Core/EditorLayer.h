@@ -2,6 +2,7 @@
 #include "Cup.h"
 
 #include "../Scene/SceneHierarchy.h"
+#include "../Scene/ContentBrowser.h"
 
 #define ENGINE Cup::CupEngine::Instance()
 
@@ -24,10 +25,10 @@ namespace Cup {
 	private:
 		void UpdateColliders();
 	private:
-
-		CupEntity m_cameraEntity;
+		SpriteAnimator animator;
 		CupEntity m_meshEntity;
 		SceneHierarchy m_sceneHierarchy;
+		ContentBrowser m_contentBrowser;
 
 		bool m_isViewportFocus = false;
 		bool m_isViewportHovered = false;

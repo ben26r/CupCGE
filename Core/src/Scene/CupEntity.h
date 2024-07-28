@@ -14,7 +14,7 @@ namespace Cup {
 	public:
 
 		CupEntity() = default;
-		CupEntity(std::shared_ptr<Scene>& _scene, const std::string& tag = "EmptyTransform");
+		CupEntity(Entity entity, Scene* _scene);
 
 		template<typename T, typename ... Args>
 		inline T& AddComponent(Args&&... args)
@@ -29,6 +29,12 @@ namespace Cup {
 		}
 
 		template<typename T>
+		inline void RemoveComponent()
+		{
+			return m_scene->m_registry.RemoveComponent<T>(m_entity);
+		}
+
+		template<typename T>
 		inline bool HasComponent()
 		{
 			return m_scene->m_registry.HasComponent<T>(m_entity);
@@ -37,7 +43,7 @@ namespace Cup {
 		inline Entity GetIndex() { return m_entity; }
 
 	protected:
-		std::shared_ptr<Scene> m_scene = nullptr;
+		Scene* m_scene = nullptr;
 		Entity m_entity = -1;
 	};
 

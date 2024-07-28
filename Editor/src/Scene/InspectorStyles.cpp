@@ -44,37 +44,12 @@ namespace Cup {
 			ImGui::DragFloat("Far", &component.camera->cfar, 0.1f);
 			ImGui::DragFloat("Aspect Ratio", &component.camera->aspectRatio, 0.1f);
 			ImGui::DragFloat("Fov", &component.camera->fov, 0.1f);
-			ImGui::DragFloat3("Position", &component.camera->m_position.x, 0.1f);
 			ImGui::Checkbox("Main Camera", &component.mainCamera);
 	}
 
 
 	static std::string GetFilePathFromExplorer() {
-		wchar_t szFile[260] = {0}; // Buffer for file path
-
-		OPENFILENAME ofn; // Common dialog box structure
-		ZeroMemory(&ofn, sizeof(ofn));
-		ofn.lStructSize = sizeof(ofn);
-		ofn.hwndOwner = NULL; // Handle to the parent window
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
-		ofn.lpstrFilter = L"All Files\0*.*\0Text Files\0*.TXT\0"; // Filter for file types
-		ofn.nFilterIndex = 1;
-		ofn.lpstrFileTitle = NULL;
-		ofn.nMaxFileTitle = 0;
-		ofn.lpstrInitialDir = NULL; // Initial directory
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; // Flags for dialog box
-
-		// Display the file dialog box
-		if (GetOpenFileName(&ofn) == TRUE) {
-			// The user selected a file
-			// Convert wide string to narrow string
-			int sizeRequired = WideCharToMultiByte(CP_ACP, 0, szFile, -1, NULL, 0, NULL, NULL);
-			std::string filePath(sizeRequired - 1, 0);
-			WideCharToMultiByte(CP_ACP, 0, szFile, -1, &filePath[0], sizeRequired, NULL, NULL);
-			return filePath;
-		}
-		return ""; // Return an empty string if no file was selected
+		return std::string();
 	}
 
 	template <>
@@ -82,25 +57,68 @@ namespace Cup {
 	{
 			CupEngine::Instance().DrawPartialSprite({ 0,0 }, Renderer::GetTextureStorage().GetSprite(component.texture).get(), { 0,0 }, { 32, 32 });
 			int textureIndex = (int)component.texture;
+
+			ImGui::Button("Model");
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path modelPath(path);
+					component.mesh.LoadModel(modelPath.string());
+				}
+				ImGui::EndDragDropTarget();
+			}
+
 			if (ImGui::CollapsingHeader("Texture"))
 			{
+				ImGui::Button("Texture");
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						std::filesystem::path texturePath(path);
+						component.texture = Texture(texturePath.string()).GetIndex();
+					}
+					ImGui::EndDragDropTarget();
+				}
+
 				if (ImGui::InputInt("Texture Index", &textureIndex))
 					component.texture = (uint32_t)textureIndex;
 
 				ImGui::DragFloat2("Tiling", &component.tiling.x);
-
-				if (ImGui::Button("Change Texture"))
-				{
-					std::string filepath = GetFilePathFromExplorer();
-					if (!filepath.empty())
-					{
-						Texture("D:\\ezram\\Projects\\CupCGE\\Editor\\assets\\example.png");
-					}
-				}
 			}
 			Vector3i color = { component.color.r, component.color.g, component.color.b };
 			if (ImGui::DragInt3("Color", &color.x))
 				component.color.r = color.x; component.color.g = color.y; component.color.b = color.z;
+	}
+
+	template <>
+	void InspectorStyles::GetStyle<SpriteRendererComponent>(SpriteRendererComponent& component)
+	{
+		CupEngine::Instance().DrawPartialSprite({ 0,0 }, Renderer::GetTextureStorage().GetSprite(component.texture).get(), { 0,0 }, { 32, 32 });
+		int textureIndex = (int)component.texture;
+
+		ImGui::Button("Texture");
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			{
+				const wchar_t* path = (const wchar_t*)payload->Data;
+				std::filesystem::path texturePath(path);
+				component.texture = Texture(texturePath.string()).GetIndex();
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		if (ImGui::InputInt("Texture Index", &textureIndex))
+			component.texture = (uint32_t)textureIndex;
+
+		ImGui::DragFloat2("Tiling", &component.tiling.x);
+		Vector3i color = { component.color.r, component.color.g, component.color.b };
+		if (ImGui::DragInt3("Color", &color.x))
+			component.color.r = color.x; component.color.g = color.y; component.color.b = color.z;
 	}
 
 	template <>
@@ -112,8 +130,56 @@ namespace Cup {
 	}
 
 	template <>
+	void InspectorStyles::GetStyle<MeshColliderComponent>(MeshColliderComponent& component)
+	{
+	}
+
+	template <>
 	void InspectorStyles::GetStyle<ScriptComponent>(ScriptComponent& component)
 	{
+	}
+
+	template <>
+	void InspectorStyles::GetStyle<SpriteAnimatorComponent>(SpriteAnimatorComponent& component)
+	{
+		if (ImGui::Button("Add Animation Clip"))
+			component.animator.AddClip(AnimationClip());
+
+		for (auto& clip : component.animator.GetClips())
+		{
+			char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), clip.second.name.c_str());
+			if (ImGui::InputText("Clip Name", buffer, sizeof(buffer)))
+				clip.second.name = std::string(buffer);
+			if (ImGui::CollapsingHeader(clip.second.name.c_str()))
+			{
+				if (ImGui::Button("Play"))
+				{
+					component.animator.Play(clip.second.name);
+				}
+
+				ImGui::DragFloat("Duration", &clip.second.duration);
+
+				ImGui::Button("Add Frame");
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						std::filesystem::path texturePath(path);
+						clip.second.AddFrame(Texture(texturePath.string()).GetIndex());
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				for (int i = 0; i < clip.second.GetFrameAmount(); i++)
+				{
+					if (ImGui::Button("Remove Frame"))
+						clip.second.RemoveFrame(i);
+				}
+			}
+		}
 	}
 
 	template <typename T>
@@ -147,9 +213,27 @@ namespace Cup {
 	}
 
 	template <>
+	const char* InspectorStyles::GetName<SpriteRendererComponent>()
+	{
+		return "Sprite Renderer";
+	}
+
+	template <>
+	const char* InspectorStyles::GetName<SpriteAnimatorComponent>()
+	{
+		return "Sprite Animator";
+	}
+
+	template <>
 	const char* InspectorStyles::GetName<BoxColliderComponent>()
 	{
 		return "Box Collider";
+	}
+
+	template <>
+	const char* InspectorStyles::GetName<MeshColliderComponent>()
+	{
+		return "Mesh Collider";
 	}
 
 	template <>

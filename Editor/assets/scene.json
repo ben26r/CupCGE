@@ -2,22 +2,17 @@
     "entities": [
         {
             "CameraComponent": {
-                "aspectRatio": 1.3567073345184326,
+                "aspectRatio": 1.0798319578170776,
                 "cfar": 1000.0,
                 "cnear": 0.10000000149011612,
-                "fov": 90.0,
+                "fov": 68.0999984741211,
                 "lookDir": [
-                    -0.9808276295661926,
+                    -0.6834353804588318,
                     0.0,
-                    0.19487720727920532
+                    -0.7300110459327698
                 ],
                 "mainCamera": true,
-                "position": [
-                    21.3897762298584,
-                    5.1298627853393555,
-                    7.678657531738281
-                ],
-                "yaw": 78.762451171875
+                "yaw": 136.88731384277344
             },
             "NativeScriptComponent": {
                 "scriptType": "CameraController"
@@ -25,16 +20,26 @@
             "TagComponent": {
                 "tag": "Camera"
             },
+            "TransformComponent": {
+                "position": [
+                    17.427461624145508,
+                    3.8310654163360596,
+                    -8.08529281616211
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
             "entity": 0
         },
         {
-            "BoxColliderComponent": {
-                "scale": [
-                    115.9000015258789,
-                    -0.30000001192092896,
-                    111.5
-                ]
-            },
             "MeshComponent": {
                 "color": [
                     255,
@@ -42,9 +47,10 @@
                     255,
                     255
                 ],
-                "texture": 4,
+                "filepath": "",
+                "texture": 7,
                 "tiling": [
-                    90.0,
+                    50.0,
                     50.0
                 ]
             },
@@ -53,9 +59,9 @@
             },
             "TransformComponent": {
                 "position": [
-                    1.0099999904632568,
-                    0.10000000149011612,
-                    1.0099999904632568
+                    0.0,
+                    0.0,
+                    0.0
                 ],
                 "rotation": [
                     0.0,
@@ -63,18 +69,19 @@
                     0.0
                 ],
                 "scale": [
-                    115.9000015258789,
-                    -0.30000001192092896,
-                    111.5
+                    100.0,
+                    0.30000001192092896,
+                    100.0
                 ]
             },
             "entity": 1
         },
         {
             "BoxColliderComponent": {
+                "autoScale": true,
                 "scale": [
-                    44.5,
-                    7.900000095367432,
+                    30.0,
+                    6.0,
                     1.0
                 ]
             },
@@ -85,20 +92,21 @@
                     255,
                     255
                 ],
-                "texture": 2,
+                "filepath": "",
+                "texture": 5,
                 "tiling": [
-                    50.0,
-                    10.0
+                    20.0,
+                    4.0
                 ]
             },
             "TagComponent": {
-                "tag": "Cube"
+                "tag": "Wall"
             },
             "TransformComponent": {
                 "position": [
                     0.0,
-                    0.0,
-                    0.0
+                    3.0999999046325684,
+                    -9.0
                 ],
                 "rotation": [
                     0.0,
@@ -106,8 +114,8 @@
                     0.0
                 ],
                 "scale": [
-                    44.5,
-                    7.900000095367432,
+                    30.0,
+                    6.0,
                     1.0
                 ]
             },
@@ -115,10 +123,11 @@
         },
         {
             "BoxColliderComponent": {
+                "autoScale": true,
                 "scale": [
-                    44.5,
-                    7.900000095367432,
-                    1.0
+                    1.0,
+                    6.0,
+                    30.0
                 ]
             },
             "MeshComponent": {
@@ -128,20 +137,21 @@
                     255,
                     255
                 ],
-                "texture": 2,
+                "filepath": "",
+                "texture": 5,
                 "tiling": [
-                    50.0,
-                    10.0
+                    20.0,
+                    4.0
                 ]
             },
             "TagComponent": {
-                "tag": "Cube"
+                "tag": "Wall"
             },
             "TransformComponent": {
                 "position": [
                     0.0,
-                    0.0,
-                    33.900001525878906
+                    3.0999999046325684,
+                    -9.0
                 ],
                 "rotation": [
                     0.0,
@@ -149,85 +159,74 @@
                     0.0
                 ],
                 "scale": [
-                    44.5,
-                    7.900000095367432,
-                    1.0
+                    1.0,
+                    6.0,
+                    30.0
                 ]
             },
             "entity": 3
         },
         {
             "BoxColliderComponent": {
+                "autoScale": true,
                 "scale": [
-                    1.0,
-                    7.900000095367432,
-                    44.5
+                    2.0,
+                    3.799999952316284,
+                    1.0
                 ]
             },
-            "MeshComponent": {
+            "MeshColliderComponent": null,
+            "NativeScriptComponent": {
+                "scriptType": "EnemyController"
+            },
+            "SpriteAnimatorComponent": null,
+            "SpriteComponent": {
                 "color": [
                     255,
                     255,
                     255,
                     255
                 ],
-                "texture": 2,
+                "texture": 0,
                 "tiling": [
-                    50.0,
-                    10.0
+                    1.0,
+                    1.0
                 ]
             },
             "TagComponent": {
-                "tag": "Cube"
+                "tag": "Enemy"
             },
             "TransformComponent": {
                 "position": [
-                    0.0,
-                    0.0,
-                    0.0
+                    -1.500893473625183,
+                    3.4000000953674316,
+                    -7.999738693237305
                 ],
                 "rotation": [
                     0.0,
-                    0.0,
+                    89.74102783203125,
                     0.0
                 ],
                 "scale": [
-                    1.0,
-                    7.900000095367432,
-                    44.5
+                    2.0,
+                    3.799999952316284,
+                    1.0
                 ]
             },
             "entity": 4
         },
         {
-            "BoxColliderComponent": {
-                "scale": [
-                    55.099998474121094,
-                    -12.5,
-                    47.099998474121094
-                ]
-            },
-            "MeshComponent": {
-                "color": [
-                    255,
-                    255,
-                    255,
-                    255
-                ],
-                "texture": 2,
-                "tiling": [
-                    50.0,
-                    10.0
-                ]
+            "NativeScriptComponent": {
+                "scriptType": "GunManager"
             },
             "TagComponent": {
-                "tag": "Cube"
+                "tag": "WeaponManager"
             },
             "TransformComponent": {
                 "position": [
-                    -3.5999999046325684,
-                    18.200000762939453,
-                    -4.199999809265137
+                    0.0,
+                    0.0,
+                    0.0
                 ],
                 "rotation": [
                     0.0,
@@ -235,19 +234,57 @@
                     0.0
                 ],
                 "scale": [
-                    55.099998474121094,
-                    -12.5,
-                    47.099998474121094
+                    1.0,
+                    1.0,
+                    1.0
                 ]
             },
             "entity": 5
         },
         {
-            "BoxColliderComponent": {
+            "MeshComponent": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "filepath": "",
+                "texture": 7,
+                "tiling": [
+                    50.0,
+                    50.0
+                ]
+            },
+            "TagComponent": {
+                "tag": "Floor"
+            },
+            "TransformComponent": {
+                "position": [
+                    0.0,
+                    6.400000095367432,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
                 "scale": [
-                    1.0,
-                    7.900000095367432,
-                    44.099998474121094
+                    100.0,
+                    0.30000001192092896,
+                    100.0
+                ]
+            },
+            "entity": 6
+        },
+        {
+            "BoxColliderComponent": {
+                "autoScale": true,
+                "scale": [
+                    30.0,
+                    6.0,
+                    1.0
                 ]
             },
             "MeshComponent": {
@@ -257,18 +294,101 @@
                     255,
                     255
                 ],
-                "texture": 2,
+                "filepath": "",
+                "texture": 5,
                 "tiling": [
-                    50.0,
-                    10.0
+                    20.0,
+                    4.0
                 ]
             },
             "TagComponent": {
-                "tag": "Cube"
+                "tag": "Wall"
             },
             "TransformComponent": {
                 "position": [
-                    44.5,
+                    16.399999618530273,
+                    3.0999999046325684,
+                    -26.399999618530273
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    30.0,
+                    6.0,
+                    1.0
+                ]
+            },
+            "entity": 7
+        },
+        {
+            "BoxColliderComponent": {
+                "autoScale": true,
+                "scale": [
+                    1.0,
+                    6.0,
+                    30.0
+                ]
+            },
+            "MeshComponent": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "filepath": "",
+                "texture": 5,
+                "tiling": [
+                    20.0,
+                    4.0
+                ]
+            },
+            "TagComponent": {
+                "tag": "Wall"
+            },
+            "TransformComponent": {
+                "position": [
+                    16.399999618530273,
+                    3.0999999046325684,
+                    -26.399999618530273
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    6.0,
+                    30.0
+                ]
+            },
+            "entity": 8
+        },
+        {
+            "MeshComponent": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "filepath": "",
+                "texture": 0,
+                "tiling": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "TagComponent": {
+                "tag": "entity"
+            },
+            "TransformComponent": {
+                "position": [
+                    0.0,
                     0.0,
                     0.0
                 ],
@@ -279,11 +399,11 @@
                 ],
                 "scale": [
                     1.0,
-                    7.900000095367432,
-                    44.099998474121094
+                    1.0,
+                    1.0
                 ]
             },
-            "entity": 6
+            "entity": 9
         }
     ]
 }

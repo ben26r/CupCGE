@@ -2,84 +2,129 @@
 
 namespace Cup {
 
-    Renderer::RendererData* Renderer::m_rendererData = nullptr;
+    Renderer::RendererData* Renderer::m_data = nullptr;
 
     bool Renderer::Init(olc::PixelGameEngine* appPtr) // - temporary solution
     {
 		SCOPE_FUNC();
-		m_rendererData = new RendererData();
-		m_rendererData->appPtr = appPtr;
-		m_rendererData->depthBuffer = new float[appPtr->ScreenWidth() * appPtr->ScreenHeight()];
+		m_data = new RendererData();
+		m_data->appPtr = appPtr;
+		m_data->depthBuffer = new float[appPtr->ScreenWidth() * appPtr->ScreenHeight()];
+		m_data->spriteMesh.triangles = { { Vector3f(0.0f, 0.0f, 0.0f),    Vector3f(0.0f, 1.0f, 0.0f),    Vector3f(1.0f, 1.0f, 0.0f),  Vector2f(0.0f, 1.0f),      Vector2f(0.0f, 0.0f),     Vector2f(1.0f, 0.0f) },
+											   { Vector3f(0.0f, 0.0f, 0.0f),    Vector3f(1.0f, 1.0f, 0.0f),    Vector3f(1.0f, 0.0f, 0.0f),  Vector2f(0.0f, 1.0f),      Vector2f(1.0f, 0.0f),     Vector2f(1.0f, 1.0f) } };
         return true;
     }
 
-	void Renderer::Submit(const Matrix4x4f& matrix, const MeshRendererComponent& meshComponent)
+	// Change back to props
+	void Renderer::Submit(const Meshf& mesh, const Matrix4x4f& model, uint32_t texture, const Vector2f tiling, const olc::Pixel& color, bool wired)
 	{
 		SCOPE_FUNC();
-		m_rendererData->stats.submits++;
+		m_data->stats.submits++;
 
-		for (auto triangle : meshComponent.mesh.triangles)
+		for (auto triangle : mesh.triangles)
 		{
 			for (auto& tex : triangle.texCoords)
 			{
-				tex *= meshComponent.tiling;
+				tex *= tiling;
 			}
 
-			triangle *= matrix;
+			triangle *= model;
 			//float distance = (triangle[0] - m_rendererData->cameraPos).magnitude();
 			//if (distance > m_rendererData->clipFar) return;
 
 			Vector3f normal((triangle[1] - triangle[0]).cross((triangle[2] - triangle[0])));
 			normal.normalize();
 
-			if (normal.dot(triangle[0] - m_rendererData->cameraPos) < 0.0f)
+			if (normal.dot(triangle[0] - m_data->cameraPos) < 0.0f)
 			{
-				triangle *= m_rendererData->viewMat;
+				triangle *= m_data->viewMat;
 
 				int nClippedTrianglesA = 0;
 				Trianglef clippedA[2];
-				nClippedTrianglesA = ClipAgainstPlane({ 0.0f, 0.0f, m_rendererData->clipFar }, { 0.0f, 0.0f, -1.0f }, triangle, clippedA[0], clippedA[1]);
+				nClippedTrianglesA = ClipAgainstPlane({ 0.0f, 0.0f, m_data->clipFar }, { 0.0f, 0.0f, -1.0f }, triangle, clippedA[0], clippedA[1]);
 
 				for (int j = 0; j < nClippedTrianglesA; j++)
 				{
 
 					int nClippedTriangles = 0;
 					Trianglef clipped[2];
-					nClippedTriangles = ClipAgainstPlane({ 0.0f, 0.0f, m_rendererData->clipNear }, { 0.0f, 0.0f, 1.0f }, clippedA[j], clipped[0], clipped[1]);
+					nClippedTriangles = ClipAgainstPlane({ 0.0f, 0.0f, m_data->clipNear }, { 0.0f, 0.0f, 1.0f }, clippedA[j], clipped[0], clipped[1]);
 
 					for (int n = 0; n < nClippedTriangles; n++)
 					{
 						for (int i = 0; i < 3; i++)
 						{
-							clipped[n].vertices[i] = m_rendererData->projectionMat * clipped[n].vertices[i];
+							clipped[n].vertices[i] = m_data->projectionMat * clipped[n].vertices[i];
 							clipped[n].vertices[i] = clipped[n].vertices[i] / clipped[n].vertices[i].w;
 
 							clipped[n].texCoords[i] = clipped[n].texCoords[i] / clipped[n].vertices[i].w;
 							clipped[n].texCoords[i].w = 1.0f / clipped[n].vertices[i].w;
 
 							clipped[n].vertices[i].x += 1.0f; clipped[n].vertices[i].y += 1.0f;
-							clipped[n].vertices[i].x *= 0.5f * (float)m_rendererData->appPtr->ScreenWidth(); clipped[n].vertices[i].y *= 0.5f * (float)m_rendererData->appPtr->ScreenHeight();
+							clipped[n].vertices[i].x *= 0.5f * (float)m_data->appPtr->ScreenWidth(); clipped[n].vertices[i].y *= 0.5f * (float)m_data->appPtr->ScreenHeight();
 						}
 
-						m_rendererData->sumTriangles.push_back(clipped[n]);
+						m_data->sumTriangles.push_back(clipped[n]);
 					}
 				}
 			}
 		}
 		
-		Flush(m_rendererData->sumTextures.GetSprite(meshComponent.texture), meshComponent.color);
+		Flush(m_data->sumTextures.GetSprite(texture), color, wired);
+	}
+
+	void Renderer::DrawSprite(uint32_t texture, const Matrix4x4f& model, const Vector2f tiling, const olc::Pixel& color, bool wired)
+	{
+		Submit(m_data->spriteMesh, model, texture, tiling, color, wired);
+	}
+
+	void Renderer::DrawWiredCube(const Matrix4x4f& model, const olc::Pixel& color)
+	{
+		Vector3f min;
+		Vector3f max(1,1,1);
+
+		// Define the 8 vertices of the box
+		Vector3f vertices[8] = {
+			{min.x, min.y, min.z},
+			{max.x, min.y, min.z},
+			{max.x, max.y, min.z},
+			{min.x, max.y, min.z},
+			{min.x, min.y, max.z},
+			{max.x, min.y, max.z},
+			{max.x, max.y, max.z},
+			{min.x, max.y, max.z}
+		};
+
+		for (auto& vertex : vertices)
+			vertex = model * vertex;
+
+		// Draw the edges of the box
+		Renderer::DrawLine(vertices[0], vertices[1], color);
+		Renderer::DrawLine(vertices[1], vertices[2], color);
+		Renderer::DrawLine(vertices[2], vertices[3], color);
+		Renderer::DrawLine(vertices[3], vertices[0], color);
+
+		Renderer::DrawLine(vertices[4], vertices[5], color);
+		Renderer::DrawLine(vertices[5], vertices[6], color);
+		Renderer::DrawLine(vertices[6], vertices[7], color);
+		Renderer::DrawLine(vertices[7], vertices[4], color);
+
+		Renderer::DrawLine(vertices[0], vertices[4], color);
+		Renderer::DrawLine(vertices[1], vertices[5], color);
+		Renderer::DrawLine(vertices[2], vertices[6], color);
+		Renderer::DrawLine(vertices[3], vertices[7], color);
 	}
 
 	void Renderer::DrawLine(const Vector3f& start, const Vector3f& end, const olc::Pixel& color)
 	{
-		Vector3f startScreen = m_rendererData->viewMat * start;
-		Vector3f endScreen = m_rendererData->viewMat * end;
+		Vector3f startScreen = m_data->viewMat * start;
+		Vector3f endScreen = m_data->viewMat * end;
 
 		// Define near and far plane
 		Vector3f nearPlaneNormal = { 0.0f, 0.0f, 1.0f };
 		Vector3f farPlaneNormal = { 0.0f, 0.0f, -1.0f };
-		Vector3f nearPlanePoint = { 0.0f, 0.0f, m_rendererData->clipNear };
-		Vector3f farPlanePoint = { 0.0f, 0.0f, m_rendererData->clipFar };
+		Vector3f nearPlanePoint = { 0.0f, 0.0f, m_data->clipNear };
+		Vector3f farPlanePoint = { 0.0f, 0.0f, m_data->clipFar };
 
 		// Clip against near plane
 		bool startInside = (nearPlaneNormal.dot(startScreen - nearPlanePoint) >= 0);
@@ -96,18 +141,18 @@ namespace Cup {
 		if (!endInside) endScreen = IntersectPlane(farPlanePoint, farPlaneNormal, startScreen, endScreen);
 
 		// Transform the start and end points from world space to screen space
-		startScreen = m_rendererData->projectionMat * startScreen;
-		endScreen = m_rendererData->projectionMat * endScreen;
+		startScreen = m_data->projectionMat * startScreen;
+		endScreen = m_data->projectionMat * endScreen;
 
 		// Perform perspective divide
 		startScreen /= startScreen.w;
 		endScreen /= endScreen.w;
 
 		// Convert from normalized device coordinates to screen coordinates
-		startScreen.x = (startScreen.x + 1.0f) * (0.5f * m_rendererData->appPtr->ScreenWidth());
-		startScreen.y = (startScreen.y + 1.0f) * (0.5f * m_rendererData->appPtr->ScreenHeight());
-		endScreen.x = (endScreen.x + 1.0f) * (0.5f * m_rendererData->appPtr->ScreenWidth());
-		endScreen.y = (endScreen.y + 1.0f) * (0.5f * m_rendererData->appPtr->ScreenHeight());
+		startScreen.x = (startScreen.x + 1.0f) * (0.5f * m_data->appPtr->ScreenWidth());
+		startScreen.y = (startScreen.y + 1.0f) * (0.5f * m_data->appPtr->ScreenHeight());
+		endScreen.x = (endScreen.x + 1.0f) * (0.5f * m_data->appPtr->ScreenWidth());
+		endScreen.y = (endScreen.y + 1.0f) * (0.5f * m_data->appPtr->ScreenHeight());
 
 		// Rasterize the line
 		int x0 = static_cast<int>(startScreen.x);
@@ -121,8 +166,8 @@ namespace Cup {
 		int err = dx + dy, e2; // error value e_xy
 
 		while (true) {
-			m_rendererData->stats.pixels++;
-			m_rendererData->appPtr->Draw(x0, y0, color); // Draw the pixel
+			m_data->stats.pixels++;
+			m_data->appPtr->Draw(x0, y0, color); // Draw the pixel
 			if (x0 == x1 && y0 == y1) break;
 			e2 = 2 * err;
 			if (e2 >= dy) { err += dy; x0 += sx; } // e_xy + e_x > 0
@@ -130,11 +175,11 @@ namespace Cup {
 		}
 	}
 
-	void Renderer::Flush(const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color)
+	void Renderer::Flush(const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color, bool wired)
 	{
 		//Sort();
 
-		for (const Triangle<float>& triangle : m_rendererData->sumTriangles)
+		for (const Triangle<float>& triangle : m_data->sumTriangles)
 		{
 			Triangle<float> clipped[2];
 			std::list<Triangle<float>> listTriangles;
@@ -155,9 +200,9 @@ namespace Cup {
 					switch (p)
 					{
 					case 0:	nTrisToAdd = ClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-					case 1:	nTrisToAdd = ClipAgainstPlane({ 0.0f, (float)m_rendererData->appPtr->ScreenHeight() - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 1:	nTrisToAdd = ClipAgainstPlane({ 0.0f, (float)m_data->appPtr->ScreenHeight() - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
 					case 2:	nTrisToAdd = ClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-					case 3:	nTrisToAdd = ClipAgainstPlane({ (float)m_rendererData->appPtr->ScreenWidth() - 1, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 3:	nTrisToAdd = ClipAgainstPlane({ (float)m_data->appPtr->ScreenWidth() - 1, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
 					}
 
 					for (int w = 0; w < nTrisToAdd; w++)
@@ -169,36 +214,38 @@ namespace Cup {
 			for (auto& t : listTriangles)
 			{
 				DrawCupTriangle(t, sprite, color);
+				if (wired)
+					DrawWiredTriangle(t, sprite, color);
 			}
 		}
 
-		m_rendererData->sumTriangles.clear();
+		m_data->sumTriangles.clear();
 	}
 
 	uint32_t Renderer::CreateTexture(const TextureProps& props)
 	{
-		return m_rendererData->sumTextures.CreateTexture(props.width, props.height);
+		return m_data->sumTextures.CreateTexture(props.width, props.height);
 	}
 
 	uint32_t Renderer::CreateTexture(const std::string& filepath, const TextureProps& props)
 	{
-		return m_rendererData->sumTextures.CreateTexture(filepath);
+		return m_data->sumTextures.CreateTexture(filepath);
 	}
 
-	void Renderer::Start(const std::shared_ptr<Camera>& camera)
+	void Renderer::Start(const std::shared_ptr<Camera>& camera, const Vector3f& position)
 	{
-		m_rendererData->stats = RendererStats();
+		m_data->stats = RendererStats();
 
-		m_rendererData->appPtr->FillRect(0, 0, m_rendererData->appPtr->ScreenWidth(), m_rendererData->appPtr->ScreenHeight(), olc::Pixel(0, 0, 0));
-		m_rendererData->projectionMat = camera->GetProjection();
-		m_rendererData->viewMat = camera->GetView();
-		m_rendererData->cameraPos = camera->GetPosition();
+		m_data->appPtr->FillRect(0, 0, m_data->appPtr->ScreenWidth(), m_data->appPtr->ScreenHeight(), olc::Pixel(0, 0, 0));
+		m_data->projectionMat = camera->GetProjection();
+		m_data->viewMat = camera->GetView(position);
+		m_data->cameraPos = position;
 
 		// Shouldn't be using camera
-		m_rendererData->clipNear = std::max(camera->cnear, 0.1f);
-		m_rendererData->clipFar = std::max(camera->cfar, 0.1f);
-		for (int i = 0; i < m_rendererData->appPtr->ScreenWidth() * m_rendererData->appPtr->ScreenHeight(); i++)
-			m_rendererData->depthBuffer[i] = 0;
+		m_data->clipNear = std::max(camera->cnear, 0.1f);
+		m_data->clipFar = std::max(camera->cfar, 0.1f);
+		for (int i = 0; i < m_data->appPtr->ScreenWidth() * m_data->appPtr->ScreenHeight(); i++)
+			m_data->depthBuffer[i] = 0;
 	}
 
 	void Renderer::End()
@@ -209,9 +256,16 @@ namespace Cup {
 	void Renderer::DrawCupTriangle(const Trianglef& triangle, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color)
 	{
 		SCOPE_FUNC();
-		m_rendererData->stats.triangles++;
+		m_data->stats.triangles++;
 		FillTexturedTriangle(triangle.vertices, triangle.texCoords, sprite, color);
 		//m_rendererData->appPtr->DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, olc::Pixel(255.0f, 255.0f, 255.0f, 255.0f));
+	}
+
+	void Renderer::DrawWiredTriangle(const Trianglef& triangle, const std::shared_ptr<olc::Sprite>& sprite, const olc::Pixel& color)
+	{
+		SCOPE_FUNC();
+		m_data->stats.triangles++;
+		m_data->appPtr->DrawTriangle(triangle[0].x, triangle[0].y, triangle[1].x, triangle[1].y, triangle[2].x, triangle[2].y, color);
 	}
 
 	inline float fract(float x)
@@ -300,13 +354,19 @@ namespace Cup {
 					{
 						olc::Pixel pixel = color;
 						Vector2 samplePos = tex_s.lerp(tex_e, t);
-						if (samplePos.w >= m_rendererData->depthBuffer[j * m_rendererData->appPtr->ScreenHeight() + i])
+						if (samplePos.w >= m_data->depthBuffer[j * m_data->appPtr->ScreenHeight() + i])
 						{
-							if (sprTex != nullptr) pixel *= sprTex->Sample(fract(samplePos.x / samplePos.w), fract(samplePos.y / samplePos.w));
-							uint8_t dColor = (uint8_t)(samplePos.w * 255);
-							m_rendererData->appPtr->Draw(j, i, pixel * samplePos.w * 2);
-							m_rendererData->stats.pixels++;
-							m_rendererData->depthBuffer[j * m_rendererData->appPtr->ScreenHeight() + i] = samplePos.w;
+							float sampleX = fract(samplePos.x / samplePos.w);
+							float sampleY = fract(samplePos.y / samplePos.w);
+							if (sprTex != nullptr) pixel *= sprTex->Sample(sampleX, sampleY);
+							//uint8_t dColor = (uint8_t)(samplePos.w * 255);
+							float fogFactor = (samplePos.w - m_data->fogMin) / (m_data->fogMax - m_data->fogMin);
+							fogFactor = std::clamp(fogFactor, 0.0f, 1.0f);
+							fogFactor = fogFactor * fogFactor * (3.0f - 2.0f * fogFactor); // Equivalent to smoothstep
+							m_data->appPtr->Draw(j, i, pixel - (m_data->fogColor * (1.0f - fogFactor)));
+							//m_data->appPtr->Draw(j, i, pixel * samplePos.w);
+							m_data->stats.pixels++;
+							m_data->depthBuffer[j * m_data->appPtr->ScreenHeight() + i] = samplePos.w;
 						}
 						t += tstep;
 					}
@@ -318,7 +378,7 @@ namespace Cup {
 	void Renderer::Sort()
 	{
 		SCOPE_FUNC();
-		std::sort(m_rendererData->sumTriangles.begin(), m_rendererData->sumTriangles.end(), [](const Triangle<float>& triangle, const Triangle<float>& other) {
+		std::sort(m_data->sumTriangles.begin(), m_data->sumTriangles.end(), [](const Triangle<float>& triangle, const Triangle<float>& other) {
 			float z1 = (triangle[0].z + triangle[1].z + triangle[2].z) / 3;
 			float z2 = (other[0].z + other[1].z + other[2].z) / 3;
 			return z1 > z2;

@@ -134,13 +134,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="assets\Scripts\GameManager.h" />
+    <ClInclude Include="assets\Scripts\GunManager.h" />
+    <ClInclude Include="assets\Scripts\Key.h" />
+    <ClInclude Include="src\Scene\ContentBrowser.h" />
     <ClInclude Include="src\Core\EditorLayer.h" />
     <ClInclude Include="src\Scene\InspectorStyles.h" />
     <ClInclude Include="src\Scene\SceneHierarchy.h" />
-    <ClInclude Include="src\Scripts\CameraController.h" />
-    <ClInclude Include="src\Scripts\EnemyController.h" />
+    <ClInclude Include="assets\Scripts\CameraController.h" />
+    <ClInclude Include="assets\Scripts\EnemyController.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Scene\ContentBrowser.cpp" />
     <ClCompile Include="src\Core\EditorLayer.cpp" />
     <ClCompile Include="src\Editor.cpp" />
     <ClCompile Include="src\Scene\InspectorStyles.cpp" />

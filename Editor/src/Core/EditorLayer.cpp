@@ -1,14 +1,17 @@
 #include "EditorLayer.h"
 
-#include "../Scripts/CameraController.h"
-#include "../Scripts/EnemyController.h"
+#include "../../assets/Scripts/CameraController.h"
+#include "../../assets/Scripts/GameManager.h"
+#include "../../assets/Scripts/EnemyController.h"
+#include "../../assets/Scripts/GunManager.h"
+#include "../../assets/Scripts/Key.h"
 
 #define ENGINE Cup::CupEngine::Instance()
 
 namespace Cup {
 
     EditorLayer::EditorLayer(CupEngine* instance)
-        : m_sceneHierarchy(Cup::CupEngine::ActiveScene()), m_instance(instance)
+        : m_sceneHierarchy(Cup::CupEngine::ActiveScene()), m_contentBrowser("assets"), m_instance(instance)
     {
        //instance->SetLayerCustomRenderFunction(0, std::bind(&EditorLayer::RenderViewport, this));
     }
@@ -16,16 +19,27 @@ namespace Cup {
 	void EditorLayer::OnAttach()
 	{
         m_mainScene = Cup::CupEngine::ActiveScene();
-        m_mainScene->Deserialize("assets/scene.json");
         Renderer::GetTextureStorage().Deserialize("assets/resourcepack.json");
+        m_mainScene->Deserialize("assets/scene.json");
 
+        AnimationClip clip("example", 10);
+        clip.AddFrame(0);
+        clip.AddFrame(1);
+        clip.AddFrame(2);
+        animator.AddClip(clip);
+        animator.Play("example");
+
+        m_meshEntity = m_mainScene->CreateEntity();
+        Meshf mesh;
+        mesh.CreateCube();
+        m_meshEntity.AddComponent<MeshRendererComponent>(mesh);
         //Renderer::GetTextureStorage().SetTextureProps(1, olc::Sprite::PERIODIC);
 	}
 
     void EditorLayer::OnDetach()
     {
-        Cup::CupEngine::ActiveScene()->Serialize("assets/scene.json");
-        Renderer::GetTextureStorage().Serialize("assets/resourcepack.json");
+        //Cup::CupEngine::ActiveScene()->Serialize("assets/scene.json");
+        //Renderer::GetTextureStorage().Serialize("assets/resourcepack.json");
     }
 
 	void EditorLayer::OnUpdate(float deltatime)
@@ -33,6 +47,18 @@ namespace Cup {
         if (m_isViewportFocus)
         {
         }
+
+        animator.Tick(deltatime);
+        auto& mesh = m_meshEntity.GetComponent<MeshRendererComponent>();
+        mesh.texture = animator.GetTexture();
+
+        for (auto entity : m_sceneHierarchy.GetSelected())
+        {
+            if (!m_mainScene->GetRegistry().HasComponent<TransformComponent>(entity)) continue;
+            TransformComponent& transform = m_mainScene->GetRegistry().GetComponent<TransformComponent>(entity);
+            Renderer::DrawWiredCube(transform.GetTransform());
+        }
+
         UpdateColliders();
 	}
 
@@ -87,11 +113,20 @@ namespace Cup {
                 ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+                if (ImGui::MenuItem("Save Scene"))
+                {
+                    Cup::CupEngine::ActiveScene()->Serialize("assets/scene.json");
+                    Renderer::GetTextureStorage().Serialize("assets/resourcepack.json");
+                }
+
+                if (ImGui::MenuItem("Revert Scene"))
+                {
+                    Renderer::GetTextureStorage().Clear();
+                    m_mainScene->Clear();
+                    Renderer::GetTextureStorage().Deserialize("assets/resourcepack.json");
+                    m_mainScene->Deserialize("assets/scene.json");
+                }
+
                 ImGui::Separator();
 
                 //if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
@@ -111,11 +146,23 @@ namespace Cup {
         ImGui::Text("Triangles: %d", stats.triangles);
         ImGui::Text("Pixels: %d", stats.pixels);
 
+        auto data = Renderer::GetData();
+        ImGui::DragFloat("Fog", &data->fog);
+        ImGui::DragFloat("Fog Min", &data->fogMin, 0.001f);
+        ImGui::DragFloat("Fog Max", &data->fogMax, 0.001f);
+        ImGui::DragFloat3("light pos", &data->light.position.x);
+        ImGui::DragFloat("light radius", &data->light.radius);
+
+        Vector3i color = { data->fogColor.r, data->fogColor.g, data->fogColor.b };
+        if (ImGui::DragInt3("Color", &color.x))
+            data->fogColor.r = color.x; data->fogColor.g = color.y; data->fogColor.b = color.z;
+
         ImGui::End();
 
         RenderViewport();
 
         m_sceneHierarchy.OnImGuiRender();
+        m_contentBrowser.OnImGuiRender();
 
         ImGui::ShowDemoWindow();
 	}
@@ -151,8 +198,8 @@ namespace Cup {
 
                 if (component.showOutline)
                 {
-                    Vector3f min = transform.position;
-                    Vector3f max = component.transformScale;
+                    Vector3f& min = component.origin;
+                    Vector3f& max = component.transformScale;
 
                     // Define the 8 vertices of the box
                     Vector3f vertices[8] = {

@@ -20,6 +20,14 @@ namespace Cup {
 
 	}
 
+	CupEntity Scene::CreateEntity(const std::string& tag)
+	{
+		CupEntity entity(m_registry.CreateEntity(), this);
+		entity.AddComponent<TagComponent>(tag);
+		entity.AddComponent<TransformComponent>();
+		return entity;
+	}
+
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity = m_registry.CreateEntity();
@@ -39,34 +47,53 @@ namespace Cup {
 
 			newComponent.instance = ScriptRegistry::Instance().CreateScript(component.scriptType);;
 			newComponent.scriptType = component.scriptType;
-			newComponent.instance->Init(CupEngine::ActiveScene(), newEntity);
+			newComponent.instance->Init(this, newEntity);
 		}
 
 		return newEntity;
 	}
 
+	void Scene::DeleteEntity(Entity entity)
+	{
+		if (m_registry.HasComponent<ScriptComponent>(entity))
+		{
+			auto& sc = m_registry.GetComponent<ScriptComponent>(entity);
+			sc.Delete();
+		}
+
+		m_registry.ForEachEntity(entity, [&](auto& component) {
+			using ComponentType = std::decay_t<decltype(component)>;
+			m_registry.RemoveComponent<ComponentType>(entity);
+			});
+	}
+
 	void Scene::Start()
 	{
+		m_mainCamera = -1;
+		std::shared_ptr<Camera> camera = nullptr;
 		m_registry.ForEachComponent<CameraComponent>([&](Entity entity, CameraComponent& component)
 			{
 				if (component.mainCamera)
 				{
-					m_mainCamera = component.camera;
+					camera = component.camera;
+					m_mainCamera = entity;
 				}
 			});
 
-		if (m_mainCamera)
+		if (m_mainCamera != -1)
 		{
-			Renderer::Start(m_mainCamera);
+			auto& transform = m_registry.GetComponent<TransformComponent>(m_mainCamera);
+			Renderer::Start(camera, transform.position);
 		}
 
 		m_registry.ForEachComponent<BoxColliderComponent>([&](Entity entity, BoxColliderComponent& component)
 			{
-				TransformComponent& transform = m_registry.GetComponent<TransformComponent>(entity);
+				auto& transform = m_registry.GetComponent<TransformComponent>(entity);
 				if (component.autoScale)
 					component.scale = transform.scale;
-				component.origin = transform.position;
-				component.transformScale = transform.position + component.scale;
+				Vector3f& scale = component.scale * 0.5f;
+				component.origin = transform.position - scale;
+				component.transformScale = transform.position + scale;
 			});
 	}
 
@@ -78,14 +105,33 @@ namespace Cup {
 
 	void Scene::Update(float deltatime)
 	{
-		if (m_mainCamera)
+		if (m_mainCamera != -1)
 		{
-			auto& ecs = m_registry.GetAllComponentsWith<MeshRendererComponent>(family::type<TransformComponent>());
-			for (const auto& ec : ecs)
-			{
-				const auto& transform = m_registry.GetComponent<TransformComponent>(ec.entity);
-				Renderer::Submit(transform.GetTransform(), ec.component);
-			}
+			m_registry.ForEachComponent<MeshRendererComponent>([&](Entity entity, MeshRendererComponent& component) {
+				CUP_ASSERT_FUNC(m_registry.HasComponent<TransformComponent>(entity), return, "Mesh Renderer Component must have a transform!!");
+				if (m_registry.HasComponent<SpriteAnimatorComponent>(entity))
+				{
+					auto& animator = m_registry.GetComponent<SpriteAnimatorComponent>(entity);
+					animator.animator.Tick(deltatime);
+					component.texture = animator.animator.GetTexture();
+				}
+
+				const auto& transform = m_registry.GetComponent<TransformComponent>(entity);
+				Renderer::Submit(component.mesh, transform.GetTransform(), component.texture, component.tiling, component.color, component.wired);
+				});
+
+			m_registry.ForEachComponent<SpriteRendererComponent>([&](Entity entity, SpriteRendererComponent& component) {
+				CUP_ASSERT_FUNC(m_registry.HasComponent<TransformComponent>(entity), return, "Sprite Renderer Component must have a transform!!");
+				if (m_registry.HasComponent<SpriteAnimatorComponent>(entity))
+				{
+					auto& animator = m_registry.GetComponent<SpriteAnimatorComponent>(entity);
+					animator.animator.Tick(deltatime);
+					component.texture = animator.animator.GetTexture();
+				}
+
+				const auto& transform = m_registry.GetComponent<TransformComponent>(entity);
+				Renderer::DrawSprite(component.texture, transform.GetTransform(), component.tiling, component.color, component.wired);
+				});
 
 			m_registry.ForEachComponent<ScriptComponent>([&](Entity entity, ScriptComponent& component)
 				{
@@ -138,16 +184,24 @@ namespace Cup {
 		}
 	}
 
-	Entity Scene::FindEntityWithTag(const std::string& tag)
+	void Scene::Clear()
+	{
+		m_registry.ForEachComponent<ScriptComponent>([&](Entity entity, ScriptComponent& component) {
+			component.Delete();
+			});
+
+		m_registry = Registry();
+	}
+
+	CupEntity Scene::FindEntityWithTag(const std::string& tag)
 	{
 		auto& entities = m_registry.GetAllComponents<TagComponent>();
 		for (auto& entity : entities)
 		{
 			if (entity.component.tag == tag)
-				return  entity.entity;
+				return  { entity.entity, this };
 		}
 		CUP_ASSERT(false, "No entity with tag was found!");
-		return -1;
 	}
 
 }
